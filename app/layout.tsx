@@ -9,6 +9,7 @@ import { PWAInstallPrompt } from "@/components/pwa-install-prompt"
 import { ThemeToggleFab } from "@/components/theme-toggle-fab"
 import { GoogleAnalytics } from "@next/third-parties/google"
 import { PushNotificationManager } from "@/components/push-notification-manager"
+import { SplashScreen } from "@/components/splash-screen"
 
 
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-sans' });
@@ -58,6 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           enableSystem
           disableTransitionOnChange
         >
+          <SplashScreen />
           {children}
           <Toaster />
           <ToastUiToaster />
