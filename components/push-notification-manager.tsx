@@ -35,7 +35,7 @@ export function PushNotificationManager() {
         const title = payload?.notification?.title || 'Notifikasi Baru';
         const options = {
           body: payload?.notification?.body,
-          icon: '/icon-192x192.png'
+          icon: '/pwa-icon.png'
         };
 
         // Mainkan suara custom saat aplikasi sedang terbuka

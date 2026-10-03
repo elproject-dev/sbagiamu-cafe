@@ -20,7 +20,7 @@ export async function POST(req: Request) {
         notification: {
           title,
           body: messageBody,
-          icon: '/icon-notification.png',
+          icon: '/pwa-icon.png',
           badge: '/icon-notification.png',
           ...(imageUrl && { image: imageUrl }), // Gambar di notifikasi browser/PWA
         },

@@ -19,7 +19,7 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification?.title || "Notifikasi Baru";
   const notificationOptions = {
     body: payload.notification?.body || "",
-    icon: '/icon-512x512.png',
+    icon: '/pwa-icon.png',
     data: {
       url: payload.fcmOptions?.link || '/'
     }
