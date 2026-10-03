@@ -76,7 +76,8 @@ export default function LandingPage() {
       </div>
 
       {/* Main Content Area */}
-      <main className="relative z-10 w-full max-w-[1440px] mx-auto flex-1 flex flex-col lg:block pb-12 lg:pb-0 justify-start pt-12 lg:pt-0">
+      <main className="relative z-10 w-full max-w-[1440px] mx-auto flex-1 flex flex-col lg:block pb-12 lg:pb-0 justify-center lg:justify-start pt-0">
+
 
         {/* Left Side: Text */}
         <div className="order-2 lg:order-none relative px-5 lg:px-0 mt-4 lg:mt-0 z-10 text-center lg:text-left flex flex-col items-center lg:items-start">
