@@ -1,0 +1,66 @@
+"use client"
+
+import { useEffect } from 'react'
+import { requestForToken, onMessageListener } from '@/lib/firebase'
+import { toast } from 'sonner'
+
+export function PushNotificationManager() {
+  useEffect(() => {
+    // Only run on client side
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      
+      const setupPushNotifications = async () => {
+        try {
+          const token = await requestForToken();
+          
+          if (token) {
+            // Send token to backend to subscribe to 'all_users' topic
+            await fetch('/api/subscribe', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ token }),
+            });
+            console.log("Successfully subscribed to notifications");
+          }
+        } catch (error) {
+          console.error("Error setting up push notifications:", error);
+        }
+      };
+
+      setupPushNotifications();
+
+      onMessageListener((payload: any) => {
+        const title = payload?.notification?.title || 'Notifikasi Baru';
+        const options = {
+          body: payload?.notification?.body,
+          icon: '/icon-192x192.png'
+        };
+
+        // Mainkan suara custom saat aplikasi sedang terbuka
+        try {
+          const audio = new Audio('/notif.wav');
+          // Browser kadang memblokir autoplay jika user belum berinteraksi dengan web
+          audio.play().catch(e => console.log('Audio di-blokir oleh browser: ', e));
+        } catch (error) {
+          console.error("Gagal memutar suara:", error);
+        }
+        
+        if (Notification.permission === 'granted') {
+          navigator.serviceWorker.ready.then((registration) => {
+            registration.showNotification(title, options);
+          });
+        }
+        
+        // Selalu tampilkan toast di dalam web
+        toast(title, {
+          description: options.body,
+          duration: 10000,
+        });
+      });
+    }
+  }, [])
+
+  return null // This component doesn't render anything
+}
