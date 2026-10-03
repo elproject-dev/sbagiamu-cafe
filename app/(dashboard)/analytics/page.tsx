@@ -3,7 +3,7 @@ import { BetaAnalyticsDataClient } from '@google-analytics/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { UsersIcon, EyeIcon, ClockIcon, UserCheck, Users, UserCog, Activity } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-
+import { createClient } from '@supabase/supabase-js';
 import { CityTable } from '@/components/analytics/city-table';
 import { SourceBarChart } from '@/components/analytics/source-bar-chart';
 import { RealtimeBarChart } from '@/components/analytics/realtime-bar-chart';
@@ -135,7 +135,7 @@ async function getAnalyticsData() {
     // Realtime Report
     let realtimeUsers = '0';
     let realtimeMinutesData: any[] = [];
-let total30Min = 0;
+    let total30Min = 0;
     try {
       const [realtimeResponse] = await analyticsDataClient.runRealtimeReport({
         property: `properties/${propertyId}`,
@@ -214,6 +214,27 @@ export default async function AnalyticsPage() {
     .select('*', { count: 'exact', head: true })
     .neq('membership_type', 'Umum')
     .not('membership_type', 'is', null);
+
+  // Fetch Google Users
+  let googleUsersCount = 0;
+  try {
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+        process.env.SUPABASE_SERVICE_ROLE_KEY
+      );
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.listUsers();
+      if (!authError && authData?.users) {
+        const googleUsers = authData.users.filter(u =>
+          u.app_metadata?.providers?.includes('google') ||
+          u.identities?.some(id => id.provider === 'google')
+        );
+        googleUsersCount = googleUsers.length;
+      }
+    }
+  } catch (err) {
+    console.error("Error fetching google users:", err);
+  }
   // const { count: totalStaf } = await supabase.from('staf').select('*', { count: 'exact', head: true });
   return (
     <div className="flex-1 space-y-4 p-3 md:p-8 pt-4 md:pt-6">
@@ -291,17 +312,38 @@ export default async function AnalyticsPage() {
           </Card>
 
           {/* New Card for Active Users in Last 30 Minutes */}
-          <Card className="col-span-2 md:col-span-1 lg:col-span-1 bg-gradient-to-br from-amber-500 to-amber-700 text-white shadow-md border-none gap-0 py-2 md:py-2">
+          <Card className="bg-gradient-to-br from-amber-500 to-amber-700 text-white shadow-md border-none gap-0 py-2 md:py-2">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 px-3 md:px-4 py-1">
               <CardTitle className="text-xs md:text-sm font-medium text-white/90">
-                Pengguna Aktif 30 Menit
+                Pengguna Aktif
               </CardTitle>
               <Activity className="h-4 w-4 text-white/80 hidden sm:block" />
             </CardHeader>
             <CardContent className="px-3 md:px-4 py-1">
               <div className="text-lg md:text-2xl font-bold">{data.total30Min || '0'}</div>
               <p className="text-[10px] md:text-xs text-white/70 mt-0 leading-tight md:leading-normal">
-                Pengguna aktif dalam 30 menit terakhir
+                30 menit terakhir
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* New Card for Google Users */}
+          <Card className="bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-md border-none gap-0 py-2 md:py-2">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 px-3 md:px-4 py-1">
+              <CardTitle className="text-xs md:text-sm font-medium text-white/90">
+                Login Google
+              </CardTitle>
+              <svg className="h-4 w-4 text-white/80 hidden sm:block fill-current" viewBox="0 0 24 24">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="currentColor" />
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="currentColor" />
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="currentColor" />
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="currentColor" />
+              </svg>
+            </CardHeader>
+            <CardContent className="px-3 md:px-4 py-1">
+              <div className="text-lg md:text-2xl font-bold">{googleUsersCount}</div>
+              <p className="text-[10px] md:text-xs text-white/70 mt-0 leading-tight md:leading-normal">
+                Total login dengan Google
               </p>
             </CardContent>
           </Card>
@@ -309,7 +351,7 @@ export default async function AnalyticsPage() {
       )}
 
       {/* Chart Section */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-4 items-stretch">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2 mt-4 items-stretch">
 
         {!data.error && (
           <>

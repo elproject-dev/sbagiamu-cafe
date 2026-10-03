@@ -30,7 +30,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
  let userIsAdmin = false
 
  if (session?.user?.email) {
- if (session.user.email === "elproject.dev@gmail.com") {
+ if (session.user.email === "elproject.dev@gmail.com" || session.user.email === "sbagiamu.pos@gmail.com") {
  userIsAdmin = true
  setIsAdmin(true)
  }

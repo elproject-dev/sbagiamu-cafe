@@ -9,9 +9,8 @@ import { useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { supabase } from "@/lib/supabase"
 import { LoadingSpinner } from "@/components/loading-spinner"
-import { Outfit } from "next/font/google"
+import { outfit } from "@/lib/fonts"
 
-const outfit = Outfit({ weight: ["300", "400", "500", "700"], subsets: ["latin"] });
 
 const galleryImages = [
   { id: 1, title: "Sayur Segar", promo: "Diskon 20%", src: "https://images.unsplash.com/photo-1566385101042-1a0aa0c1268c?w=600&h=400&fit=crop" },

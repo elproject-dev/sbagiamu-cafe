@@ -6,10 +6,8 @@ import { TopBar } from "@/components/top-bar";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import Image from "next/image";
 import Link from "next/link";
-import { McLaren, Outfit } from "next/font/google";
+import { mclaren, outfit } from "@/lib/fonts"
 
-const mclaren = McLaren({ weight: ["400"], subsets: ["latin"] });
-const outfit = Outfit({ weight: ["400"], subsets: ["latin"] });
 
 export default function LandingPage() {
   const router = useRouter();

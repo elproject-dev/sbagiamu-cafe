@@ -9,10 +9,8 @@ import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { LoadingSpinner } from "@/components/loading-spinner"
-import { Outfit, Jockey_One } from "next/font/google"
+import { outfit, jockey } from "@/lib/fonts"
 
-const outfit = Outfit({ weight: ["300", "400", "500", "600", "700", "800"], subsets: ["latin"] });
-const jockey = Jockey_One({ weight: ["400"], subsets: ["latin"] });
 
 export default function PilihanPage() {
  const router = useRouter()

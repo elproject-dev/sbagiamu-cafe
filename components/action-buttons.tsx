@@ -1,7 +1,6 @@
 import React from "react";
-import { Outfit } from "next/font/google";
+import { outfit } from "@/lib/fonts"
 
-const outfit = Outfit({ subsets: ["latin"], weight: ["400"] });
 
 import Link from "next/link";
 

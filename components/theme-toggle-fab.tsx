@@ -21,7 +21,7 @@ export function ThemeToggleFab() {
       setIsAdminOrStaff(false)
       return
     }
-    if (email === "elproject.dev@gmail.com") {
+    if (email === "elproject.dev@gmail.com" || email === "sbagiamu.pos@gmail.com") {
       setIsAdminOrStaff(true)
       return
     }

@@ -5,9 +5,8 @@ import { MdOutlineEvent } from "react-icons/md";
 import Image from "next/image";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { Outfit } from "next/font/google";
+import { outfit } from "@/lib/fonts"
 
-const outfit = Outfit({ weight: ["300", "700"], subsets: ["latin"] });
 import { supabase } from "@/lib/supabase";
 import { useRouter, usePathname } from "next/navigation";
 import { LogOutIcon, CircleUser, Coffee } from "lucide-react";

@@ -1,7 +1,6 @@
 import React from "react";
-import { Outfit } from "next/font/google";
+import { outfit } from "@/lib/fonts"
 
-const outfit = Outfit({ subsets: ["latin"], weight: ["700", "800"] });
 
 export function Banner() {
   return (

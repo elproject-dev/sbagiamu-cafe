@@ -59,31 +59,29 @@ export function AdminFAB() {
  }, [isOpen])
 
  return (
- <div ref={fabRef} className="fixed bottom-24 right-4 md:bottom-10 md:right-10 z-[100] flex flex-col items-end">
+ <div ref={fabRef} className="fixed bottom-24 right-4 md:bottom-10 md:right-10 z-[100] flex flex-col items-center">
  <AnimatePresence>
  {isOpen && (
  <motion.div
- initial={{ opacity: 0, y: 20, scale: 0.8 }}
+ initial={{ opacity: 0, y: 15, scale: 0.8 }}
  animate={{ opacity: 1, y: 0, scale: 1 }}
- exit={{ opacity: 0, y: 20, scale: 0.8 }}
+ exit={{ opacity: 0, y: 15, scale: 0.8 }}
  transition={{ duration: 0.2 }}
- className="flex flex-col gap-2 mb-4 bg-background dark:bg-zinc-900 p-3 rounded-2xl shadow-xl border border-primary-soft/30 dark:border-zinc-800"
+ className="flex flex-col items-center gap-3 mb-4"
  >
  {adminMenus.map((menu, index) => {
  const Icon = menu.icon
  const isActive = pathname === menu.url
 
  return (
- <Link href={menu.url} key={menu.name} onClick={() => setIsOpen(false)}>
+ <Link href={menu.url} key={menu.name} onClick={() => setIsOpen(false)} title={menu.name}>
  <div className={cn(
- "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer group hover:bg-primary-soft dark:hover:bg-background",
- isActive ? "bg-primary-soft/50 dark:bg-background/50 text-primary font-medium" : "text-zinc-600 dark:text-zinc-400"
+ "h-12 w-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110",
+ isActive 
+ ? "bg-primary text-white shadow-md shadow-primary/20" 
+ : "bg-primary-soft/80 dark:bg-background/80 text-primary hover:bg-primary-soft dark:hover:bg-background"
  )}>
- <Icon className={cn(
- "w-5 h-5 group-hover:scale-110 transition-transform",
- isActive ? "text-primary" : ""
- )} />
- <span className="text-sm md:text-base font-[500] whitespace-nowrap">{menu.name}</span>
+ <Icon className="w-5 h-5" />
  </div>
  </Link>
  )

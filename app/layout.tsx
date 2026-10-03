@@ -1,28 +1,29 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Outfit, Moderustic, Poiret_One } from "next/font/google";
+import { Geist, Geist_Mono, Moderustic, Poiret_One } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { outfit } from "@/lib/fonts";
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { Toaster as ToastUiToaster } from "@/components/ui/toast"
 import { PWAInstallPrompt } from "@/components/pwa-install-prompt"
-import { ThemeToggleFab } from "@/components/theme-toggle-fab"
 import { GoogleAnalytics } from "@next/third-parties/google"
 import { PushNotificationManager } from "@/components/push-notification-manager"
 
 
-const outfit = Outfit({ subsets: ['latin'], variable: '--font-sans' });
-const moderustic = Moderustic({ subsets: ['latin'], variable: '--font-moderustic' });
-const poiretOne = Poiret_One({ weight: "400", subsets: ['latin'], variable: '--font-poiret-one' });
+const moderustic = Moderustic({ subsets: ['latin'], variable: '--font-moderustic', preload: false });
+const poiretOne = Poiret_One({ weight: "400", subsets: ['latin'], variable: '--font-poiret-one', preload: false });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  preload: false,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -62,7 +63,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Toaster />
           <ToastUiToaster />
           <PWAInstallPrompt />
-          <ThemeToggleFab />
           <PushNotificationManager />
         </ThemeProvider>
         {process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID && (

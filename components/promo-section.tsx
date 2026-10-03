@@ -1,8 +1,7 @@
 import React from "react";
-import { Outfit } from "next/font/google";
+import { outfit } from "@/lib/fonts"
 import Link from "next/link";
 
-const outfit = Outfit({ subsets: ["latin"], weight: ["400", "700", "800"] });
 
 export function PromoSection() {
   return (

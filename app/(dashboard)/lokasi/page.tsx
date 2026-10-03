@@ -4,10 +4,9 @@ import * as React from "react"
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
 import { LoadingSpinner } from "@/components/loading-spinner"
-import { Outfit } from "next/font/google"
+import { outfit } from "@/lib/fonts"
 import { MapPin, Clock, Contact } from "lucide-react"
 
-const outfit = Outfit({ weight: ["400", "700"], subsets: ["latin"] });
 
 export default function LokasiPage() {
  const [storeLocations, setStoreLocations] = useState<any[]>([])

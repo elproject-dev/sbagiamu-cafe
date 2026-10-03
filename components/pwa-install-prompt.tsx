@@ -41,6 +41,9 @@ export function PWAInstallPrompt() {
       }
 
       const handleBeforeInstallPrompt = (e: Event) => {
+        // Jika user sudah menutup prompt, biarkan browser menangani sendiri
+        // (tidak memanggil preventDefault agar tidak muncul warning "Banner not shown").
+        if (localStorage.getItem("pwa-prompt-dismissed") === "true") return;
         e.preventDefault();
         (window as any).deferredPrompt = e;
         setDeferredPrompt(e);

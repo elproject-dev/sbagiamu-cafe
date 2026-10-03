@@ -1,22 +1,43 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card } from "@/components/ui/card"
-import { Loader2, Search } from "lucide-react"
+import { Loader2, Search, Tag, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { supabase } from "@/lib/supabase"
 import { LoadingSpinner } from "@/components/loading-spinner"
-import { Outfit } from "next/font/google"
+import { outfit } from "@/lib/fonts"
 
-const outfit = Outfit({ weight: ["300", "400", "500", "600", "700", "800"], subsets: ["latin"] })
 
 export default function ProdukPage() {
   const [isMounted, setIsMounted] = useState(false)
   const [produks, setProduks] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [categories, setCategories] = useState<{ id: number; name: string }[]>([])
+  const [selectedCategory, setSelectedCategory] = useState<{ id: number; name: string } | null>(null)
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const searchBoxRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data } = await supabase.from('categories').select('id, name').order('name', { ascending: true })
+      if (data) setCategories(data)
+    }
+    fetchCategories()
+  }, [])
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   useEffect(() => {
     const fetchProduks = async () => {
@@ -30,6 +51,7 @@ export default function ProdukPage() {
       if (data) {
         const formattedData = data.map(item => ({
           id: item.id,
+          categoryId: item.category_id,
           title: item.name,
           price: `Rp ${Number(item.price).toLocaleString("id-ID")}`,
           src: item.image_url
@@ -53,11 +75,16 @@ export default function ProdukPage() {
 
   const filteredProduks = produks.filter((item) => {
     const query = searchQuery.toLowerCase()
+    if (selectedCategory && item.categoryId !== selectedCategory.id) return false
     return (
       item.title.toLowerCase().includes(query) ||
       item.price.toLowerCase().includes(query)
     )
   })
+
+  const suggestedCategories = categories.filter((c) =>
+    c.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   return (
     <>
@@ -71,14 +98,50 @@ export default function ProdukPage() {
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 mt-0 md:mt-4">
             <h1 className={`hidden sm:block text-[24px] md:text-[30px] leading-[1.2] text-primary transition-colors ${outfit.className} font-[300]`}>Produk Hari Ini</h1>
-            <div className="relative w-full sm:max-w-xs ml-auto">
-              <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <div ref={searchBoxRef} className="relative w-full sm:max-w-xs ml-auto">
+              <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
               <Input
-                placeholder="Cari produk..."
+                placeholder={selectedCategory ? `Cari di ${selectedCategory.name}...` : "Cari produk..."}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => { setSearchQuery(e.target.value); setShowSuggestions(true) }}
+                onFocus={() => setShowSuggestions(true)}
                 className="pr-9"
               />
+              {showSuggestions && (
+                <div className="absolute left-0 right-0 top-full mt-1 z-50 max-h-64 overflow-y-auto rounded-md border border-primary/20 bg-background text-primary shadow-lg animate-in fade-in-0 zoom-in-95">
+                  <p className="px-3 pt-2 pb-1 text-[11px] font-medium uppercase tracking-wide text-primary/60">Kategori</p>
+                  {suggestedCategories.length > 0 ? (
+                    suggestedCategories.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCategory(c)
+                          setSearchQuery("")
+                          setShowSuggestions(false)
+                        }}
+                        className={`flex w-full items-center gap-2 px-3 py-2 text-sm text-left hover:bg-primary/10 ${selectedCategory?.id === c.id ? "bg-primary/15" : ""}`}
+                      >
+                        <Tag className="h-3.5 w-3.5 opacity-70" />
+                        {c.name}
+                      </button>
+                    ))
+                  ) : (
+                    <p className="px-3 py-2 text-sm text-primary/60">Kategori tidak ditemukan</p>
+                  )}
+                </div>
+              )}
+              {selectedCategory && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory(null)}
+                  className="mt-2 inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs text-primary"
+                >
+                  <Tag className="h-3 w-3" />
+                  {selectedCategory.name}
+                  <X className="h-3 w-3" />
+                </button>
+              )}
             </div>
           </div>
 

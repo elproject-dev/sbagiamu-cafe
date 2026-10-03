@@ -3,12 +3,11 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
-import { Outfit } from "next/font/google"
+import { outfit } from "@/lib/fonts"
 import { ChevronLeft } from "lucide-react"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import { Button } from "@/components/ui/button"
 
-const outfit = Outfit({ weight: ["300", "400", "500", "600", "700", "800"], subsets: ["latin"] })
 
 export default function PromoDetailPage() {
   const params = useParams()

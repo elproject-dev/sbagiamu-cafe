@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Outfit, Jockey_One } from "next/font/google";
+import { outfit, jockey } from "@/lib/fonts"
 import { supabase } from "@/lib/supabase";
 import { CalendarDays, MapPin } from "lucide-react";
 import Autoplay from "embla-carousel-autoplay";
@@ -11,8 +11,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
-const outfit = Outfit({ weight: ["300", "400", "600", "700", "800"], subsets: ["latin"] });
-const jockey = Jockey_One({ weight: ["400"], subsets: ["latin"] });
 
 import { LoadingSpinner } from "@/components/loading-spinner";
 
