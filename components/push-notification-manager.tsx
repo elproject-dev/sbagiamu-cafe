@@ -101,7 +101,7 @@ export function PushNotificationManager() {
   if (!showPrompt) return null
 
   return (
-    <div className="fixed bottom-24 lg:bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[calc(100%-2rem)] max-w-sm rounded-md border bg-background p-4 shadow-xl">
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-[calc(100%-2rem)] max-w-sm rounded-md border bg-background p-4 shadow-xl">
       <p className="text-sm font-semibold text-foreground">Aktifkan notifikasi?</p>
       <p className="mt-1 text-xs text-muted-foreground">
         Dapatkan info promo terbaru dari Sbagiamu Cafe langsung di perangkat Anda.
