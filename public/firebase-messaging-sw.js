@@ -20,6 +20,7 @@ messaging.onBackgroundMessage((payload) => {
   const notificationOptions = {
     body: payload.notification?.body || "",
     icon: '/pwa-icon.png',
+    badge: '/badge-icon.png',
     data: {
       url: payload.fcmOptions?.link || '/'
     }
