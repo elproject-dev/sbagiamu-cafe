@@ -76,27 +76,25 @@ export default function LandingPage() {
       </div>
 
       {/* Main Content Area */}
-      <main className="relative z-10 w-full max-w-[1440px] mx-auto flex-1 flex flex-col lg:block pb-12 lg:pb-0 justify-center lg:justify-start pt-0">
+      <main className="relative z-10 w-full max-w-[1440px] mx-auto flex-1 flex flex-col lg:flex-row items-center justify-center lg:justify-between px-6 md:px-12 lg:px-20 pb-12 lg:pb-0 pt-0 gap-6 lg:gap-4">
 
-
-        {/* Left Side: Text */}
-        <div className="order-2 lg:order-none relative px-5 lg:px-0 mt-4 lg:mt-0 z-10 text-center lg:text-left flex flex-col items-center lg:items-start">
+        {/* Left Side: Text and Button */}
+        <div className="order-2 lg:order-1 flex flex-col items-center lg:items-start text-center lg:text-left z-10 w-full lg:w-3/5 gap-4 lg:gap-6">
           <h1
-            className={`hidden md:block lg:absolute lg:left-[20px] lg:top-[259px] lg:w-[900px] lg:h-[70px] text-primary-foreground dark:text-foreground text-[28px] md:text-[32px] lg:text-[48px] leading-[1.2] lg:leading-[70px] tracking-[0.1em] drop-shadow-[0_4px_4px_rgba(0,0,0,0.25)] ${mclaren.className}`}
+            className={`hidden lg:block text-primary-foreground dark:text-foreground lg:text-[48px] xl:text-[60px] leading-[1.2] tracking-[0.1em] drop-shadow-[0_4px_4px_rgba(0,0,0,0.25)] ${mclaren.className}`}
           >
-            Nikmati Coffee Pilihan Premium
+            Nikmati Coffee <br />
+            Pilihan Premium
           </h1>
           <h2
-            className={`lg:absolute lg:left-[20px] lg:top-[322px] lg:w-auto lg:h-auto text-primary-foreground dark:text-foreground text-[20px] md:text-[24px] lg:text-[32px] leading-[1.4] tracking-[0.1em] mt-2 lg:mt-0 drop-shadow-[0_4px_4px_rgba(0,0,0,0.25)] whitespace-normal ${mclaren.className}`}
+            className={`text-primary-foreground dark:text-foreground text-[20px] md:text-[28px] lg:text-[32px] leading-[1.4] tracking-[0.1em] drop-shadow-[0_4px_4px_rgba(0,0,0,0.25)] whitespace-normal ${mclaren.className}`}
           >
-            Real Bean, Real Coffee <br className="block lg:hidden" />
-            <span className="hidden lg:inline"> </span>100% Bahagia
+            Real Bean, Real Coffee <br />
+            100% Bahagia
           </h2>
-        </div>
 
-        <div className="order-3 lg:order-none relative lg:absolute lg:left-[20px] lg:top-[390px] px-5 lg:px-0 mt-6 lg:mt-0 flex flex-col items-center lg:items-start justify-center gap-[12px] lg:gap-[16px] drop-shadow-[0_4px_4px_rgba(0,0,0,0.25)]">
           <button
-            className={`flex flex-row justify-center items-center px-[20px] py-[8px] gap-[8px] w-[145px] h-[32px] bg-primary-foreground dark:bg-primary shadow-[0_2px_4px_rgba(0,0,0,0.25)] rounded-[100px] text-primary dark:text-background font-normal text-[12px] leading-[15px] hover:opacity-90 transition-opacity ${outfit.className}`}
+            className={`mt-2 flex flex-row justify-center items-center px-[20px] py-[8px] gap-[8px] w-[145px] h-[32px] lg:w-[160px] lg:h-[40px] bg-primary-foreground dark:bg-primary shadow-[0_2px_4px_rgba(0,0,0,0.25)] rounded-[100px] text-primary dark:text-background font-normal text-[12px] lg:text-[14px] leading-[15px] hover:opacity-90 transition-opacity ${outfit.className}`}
             onClick={() => router.push('/home')}
           >
             Lihat Promo
@@ -104,13 +102,13 @@ export default function LandingPage() {
         </div>
 
         {/* Right Side: Logo AI Image */}
-        <Link href="/home" className="order-1 lg:order-none relative lg:absolute lg:right-[20px] lg:top-[80px] w-[280px] h-[280px] md:w-[320px] md:h-[320px] lg:w-[461px] lg:h-[461px] -mt-4 lg:mt-0 self-center mx-auto lg:mx-0 hover:scale-105 transition-transform duration-300 -z-10 mix-blend-multiply">
+        <Link href="/home" className="order-1 lg:order-2 relative w-[280px] h-[280px] md:w-[360px] md:h-[360px] lg:w-[460px] lg:h-[460px] shrink-0 hover:scale-105 transition-transform duration-300 -z-10 mix-blend-multiply">
           <Image
             src="/LOGO AI NEW-07.png"
             alt="Logo"
             fill
             priority
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-contain animate-zoom-soft"
           />
         </Link>
