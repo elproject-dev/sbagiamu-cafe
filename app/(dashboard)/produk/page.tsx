@@ -5,17 +5,26 @@ import { Card } from "@/components/ui/card"
 import { Loader2, Search, Tag, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { supabase } from "@/lib/supabase"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import { outfit } from "@/lib/fonts"
+
+
 
 
 export default function ProdukPage() {
   const [isMounted, setIsMounted] = useState(false)
   const [produks, setProduks] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null)
+  const [extLinks, setExtLinks] = useState<Record<string, string>>({})
+
+  const orderPlatforms = [
+    { name: "GrabFood", src: "/grabfood.png", href: extLinks.grabfood_link || "https://food.grab.com/" },
+    { name: "ShopeeFood", src: "/shopeefood.png", href: extLinks.shopeefood_link || "https://shopee.co.id/shopeefood" },
+    { name: "GoFood", src: "/gofood.png", href: extLinks.gofood_link || "https://gofood.co.id/" },
+  ]
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([])
   const [selectedCategory, setSelectedCategory] = useState<{ id: number; name: string } | null>(null)
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -41,6 +50,13 @@ export default function ProdukPage() {
 
   useEffect(() => {
     const fetchProduks = async () => {
+      const { data: configData } = await supabase.from('app_config').select('key, value').in('key', ['grabfood_link', 'shopeefood_link', 'gofood_link'])
+      if (configData) {
+        const linksObj: Record<string, string> = {}
+        configData.forEach(item => linksObj[item.key] = item.value)
+        setExtLinks(linksObj)
+      }
+
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -88,9 +104,41 @@ export default function ProdukPage() {
 
   return (
     <>
-      <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
-        <DialogContent className="w-[90vw] max-w-lg p-0 border-none bg-transparent shadow-none [&>button]:text-white [&>button]:bg-black/50 [&>button]:rounded-full [&>button]:p-2 [&>button]:right-2 [&>button]:top-2 [&>button]:hover:bg-black/70">
-          {selectedImage && <img src={selectedImage} alt="Preview" className="w-full h-auto max-h-[85vh] rounded-sm object-contain shadow-2xl" />}
+      <Dialog open={!!selectedProduct} onOpenChange={(open) => !open && setSelectedProduct(null)}>
+        <DialogContent className="w-[90vw] max-w-sm p-0 overflow-hidden rounded-xl border-none bg-card gap-0">
+          {selectedProduct && (
+            <>
+              <div className="w-full aspect-square bg-primary/15 relative">
+                {selectedProduct.src && (
+                  <img src={selectedProduct.src} alt={selectedProduct.title} className="absolute inset-0 w-full h-full object-cover" />
+                )}
+                <div className="absolute inset-x-0 bottom-0 px-5 pt-16 pb-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col gap-0.5">
+                  <DialogTitle className={`text-[20px] font-[600] text-white text-left drop-shadow ${outfit.className}`}>
+                    {selectedProduct.title}
+                  </DialogTitle>
+                  <p className={`text-[18px] font-[800] text-white drop-shadow ${outfit.className}`}>{selectedProduct.price}</p>
+                </div>
+              </div>
+              <div className="px-5 py-4 flex flex-col gap-2">
+                <p className={`text-[13px] text-primary/70 ${outfit.className}`}>Pesan melalui</p>
+                <div className="grid grid-cols-3 gap-3">
+                  {orderPlatforms.map((p) => (
+                    <a
+                      key={p.name}
+                      href={p.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Pesan lewat ${p.name}`}
+                      className="flex items-center justify-center rounded-lg bg-primary/5 py-2 hover:bg-primary/10 hover:scale-105 transition"
+                    >
+                      <img src={p.src} alt={p.name} className="w-[44px] h-[44px] object-contain" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+            </>
+          )}
         </DialogContent>
       </Dialog>
       <div className="w-full min-h-screen bg-background flex flex-col items-center overflow-x-hidden font-sans transition-colors duration-300">
@@ -98,7 +146,8 @@ export default function ProdukPage() {
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 mt-0 md:mt-4">
             <h1 className={`hidden sm:block text-[24px] md:text-[30px] leading-[1.2] text-primary transition-colors ${outfit.className} font-[300]`}>Produk Hari Ini</h1>
-            <div ref={searchBoxRef} className="relative w-full sm:max-w-xs ml-auto">
+            <div ref={searchBoxRef} className="w-full sm:max-w-xs ml-auto flex flex-col items-start">
+              <div className="relative w-full">
               <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
               <Input
                 placeholder={selectedCategory ? `Cari di ${selectedCategory.name}...` : "Cari produk..."}
@@ -131,6 +180,7 @@ export default function ProdukPage() {
                   )}
                 </div>
               )}
+              </div>
               {selectedCategory && (
                 <button
                   type="button"
@@ -149,7 +199,7 @@ export default function ProdukPage() {
             {filteredProduks.map((item) => (
               <div
                 key={item.id}
-                onClick={() => setSelectedImage(item.src)}
+                onClick={() => setSelectedProduct(item)}
                 className="flex flex-col w-full rounded-none overflow-hidden shadow-[0px_4px_4px_rgba(0,0,0,0.25)] border border-primary/10 bg-card transition-colors cursor-pointer group transform-gpu"
               >
                 <div className="w-full aspect-square bg-primary/15 relative overflow-hidden flex items-center justify-center text-gray-500 text-sm transition-colors">

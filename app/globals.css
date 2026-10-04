@@ -133,6 +133,15 @@
 
   body {
     @apply bg-background text-foreground;
+    -webkit-touch-callout: none; /* Disable native context menu (e.g., long press on image/link) */
+    -webkit-user-select: none;   /* Disable text selection (Webkit) */
+    user-select: none;           /* Disable text selection */
+  }
+
+  /* Allow text selection on specific elements if needed, like inputs */
+  input, textarea {
+    -webkit-user-select: auto;
+    user-select: auto;
   }
 
   html {

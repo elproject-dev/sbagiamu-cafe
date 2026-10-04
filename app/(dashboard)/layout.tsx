@@ -37,7 +37,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
  }
 
  // Daftar halaman yang HANYA boleh diakses oleh Admin
- const adminRoutes = ["/analytics", "/broadcast", "/pelanggan", "/settings"]
+ const adminRoutes = ["/analytics", "/broadcast", "/pelanggan", "/settings", "/linked"]
  const currentPath = window.location.pathname
  const isTryingToAccessAdminRoute = adminRoutes.some(route => currentPath.startsWith(route))
 

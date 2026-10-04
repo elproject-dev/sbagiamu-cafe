@@ -1330,11 +1330,6 @@ export default function SettingsPage() {
  />
  </div>
  <div className="flex items-center gap-2 w-full justify-end sm:w-auto">
- {selectedProdukRows.length > 0 && (
- <Button variant="secondary" onClick={handleDeleteProduk}>
- Hapus ({selectedProdukRows.length})
- </Button>
- )}
  </div>
  </div>
  </div>
@@ -1355,15 +1350,7 @@ export default function SettingsPage() {
 
  {/* Drag & Drop List */}
  <div className="rounded-none border border-primary/20 overflow-hidden">
- {/* Header kolom */}
- <div className="flex items-center gap-3 h-10 px-2 bg-primary-soft dark:bg-background border-b border-primary/20">
- <span className="w-7 shrink-0 text-center text-sm font-medium text-foreground">#</span>
- <span className="w-7 shrink-0 text-center text-sm font-medium text-foreground">⠿</span>
- <span className="w-12 shrink-0 text-center text-sm font-medium text-foreground">Foto</span>
- <span className="flex-1 min-w-0 text-sm font-medium text-foreground">Nama & Harga</span>
- <span className="hidden sm:block w-[50px] shrink-0 text-center text-sm font-medium text-foreground">Aktif</span>
- <span className="w-4 shrink-0 text-center text-sm font-medium text-foreground">✓</span>
- </div>
+
 
  {isLoading ? (
  <div className="py-16 text-center text-primary/50 text-sm">

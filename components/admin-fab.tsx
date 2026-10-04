@@ -10,7 +10,8 @@ import {
  Settings2Icon,
  X,
  Settings,
- Megaphone
+ Megaphone,
+ Link2
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -34,6 +35,11 @@ const adminMenus = [
  name: "Manajemen",
  url: "/settings",
  icon: Settings2Icon,
+ },
+ {
+ name: "Linked",
+ url: "/linked",
+ icon: Link2,
  },
 ]
 

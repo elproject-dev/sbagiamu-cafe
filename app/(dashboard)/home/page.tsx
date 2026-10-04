@@ -4,7 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { outfit, jockey } from "@/lib/fonts"
 import { supabase } from "@/lib/supabase";
-import { CalendarDays, MapPin } from "lucide-react";
+import { AiFillTikTok, AiFillInstagram } from "react-icons/ai";
+import { FaFacebook, FaYoutube } from "react-icons/fa";
+import { BsBrowserChrome } from "react-icons/bs";
+import { CalendarDays, MapPin, Star } from "lucide-react";
 import Autoplay from "embla-carousel-autoplay";
 import { Carousel, CarouselContent, CarouselItem, CarouselDots } from "@/components/ui/carousel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -13,6 +16,7 @@ import { useRouter } from "next/navigation";
 
 
 import { LoadingSpinner } from "@/components/loading-spinner";
+
 
 export default function HomePage() {
   const router = useRouter();
@@ -27,7 +31,14 @@ export default function HomePage() {
   const [articles, setArticles] = useState<any[]>([]);
   const [runningTexts, setRunningTexts] = useState<any[]>([]);
   const [rtConfig, setRtConfig] = useState({ is_enabled: false, speed: 'normal' });
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+  const [extLinks, setExtLinks] = useState<Record<string, string>>({});
+
+  const orderPlatforms = [
+    { name: "GrabFood", src: "/grabfood.png", href: extLinks.grabfood_link || "https://food.grab.com/" },
+    { name: "ShopeeFood", src: "/shopeefood.png", href: extLinks.shopeefood_link || "https://shopee.co.id/shopeefood" },
+    { name: "GoFood", src: "/gofood.png", href: extLinks.gofood_link || "https://gofood.co.id/" },
+  ];
 
   const bannerPlugin = useRef(Autoplay({ delay: 4000, stopOnInteraction: true }));
   const productPlugin = useRef(Autoplay({ delay: 3000, stopOnInteraction: true }));
@@ -39,7 +50,7 @@ export default function HomePage() {
           supabase.from("banner").select("*").order("created_at", { ascending: false }),
           supabase.from("promo").select("*").eq("is_active", true).order("created_at", { ascending: false }).limit(5),
           supabase.from("products").select("*").eq("is_active", true).order("sort_order", { ascending: true, nullsFirst: false }).order("id", { ascending: true }).limit(10),
-          supabase.from("app_config").select("key, value").in("key", ["hero_banner_text", "hero_banner_image", "hero_banner2_text", "hero_banner2_image"]),
+          supabase.from("app_config").select("key, value").in("key", ["hero_banner_text", "hero_banner_image", "hero_banner2_text", "hero_banner2_image", "grabfood_link", "shopeefood_link", "gofood_link", "google_review_link", "instagram_link", "facebook_link", "tiktok_link", "youtube_link", "website_link"]),
           supabase.from("article").select("*").eq("is_active", true).order("created_at", { ascending: false }).limit(5)
         ]);
 
@@ -48,12 +59,15 @@ export default function HomePage() {
         if (productsRes.data) setProducts(productsRes.data);
         if (articlesRes.data) setArticles(articlesRes.data);
         if (configRes.data) {
+          const linksObj: Record<string, string> = {};
           configRes.data.forEach(item => {
             if (item.key === 'hero_banner_text') setHeroText(item.value);
-            if (item.key === 'hero_banner_image') setHeroImage(item.value);
-            if (item.key === 'hero_banner2_text') setHero2Text(item.value);
-            if (item.key === 'hero_banner2_image') setHero2Image(item.value);
+            else if (item.key === 'hero_banner_image') setHeroImage(item.value);
+            else if (item.key === 'hero_banner2_text') setHero2Text(item.value);
+            else if (item.key === 'hero_banner2_image') setHero2Image(item.value);
+            else linksObj[item.key] = item.value;
           });
+          setExtLinks(linksObj);
         }
 
         try {
@@ -84,15 +98,47 @@ export default function HomePage() {
 
   return (
     <>
-      <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
-        <DialogContent className="w-[90vw] max-w-lg p-0 border-none bg-transparent shadow-none [&>button]:text-white [&>button]:bg-black/50 [&>button]:rounded-full [&>button]:p-2 [&>button]:right-2 [&>button]:top-2 [&>button]:hover:bg-black/70">
-          {selectedImage && <img src={selectedImage} alt="Preview" className="w-full h-auto max-h-[85vh] rounded-sm object-contain shadow-2xl" />}
+      <Dialog open={!!selectedProduct} onOpenChange={(open) => !open && setSelectedProduct(null)}>
+        <DialogContent className="w-[90vw] max-w-sm p-0 overflow-hidden rounded-xl border-none bg-card gap-0">
+          {selectedProduct && (
+            <>
+              <div className="w-full aspect-square bg-primary/15 relative">
+                {selectedProduct.src && (
+                  <img src={selectedProduct.src} alt={selectedProduct.title} className="absolute inset-0 w-full h-full object-cover" />
+                )}
+                <div className="absolute inset-x-0 bottom-0 px-5 pt-16 pb-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col gap-0.5">
+                  <DialogTitle className={`text-[20px] font-[600] text-white text-left drop-shadow ${outfit.className}`}>
+                    {selectedProduct.title}
+                  </DialogTitle>
+                  <p className={`text-[18px] font-[800] text-white drop-shadow ${outfit.className}`}>{selectedProduct.price}</p>
+                </div>
+              </div>
+              <div className="px-5 py-4 flex flex-col gap-2">
+                <p className={`text-[13px] text-primary/70 ${outfit.className}`}>Pesan melalui</p>
+                <div className="grid grid-cols-3 gap-3">
+                  {orderPlatforms.map((p) => (
+                    <a
+                      key={p.name}
+                      href={p.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Pesan lewat ${p.name}`}
+                      className="flex items-center justify-center rounded-lg bg-primary/5 py-2 hover:bg-primary/10 hover:scale-105 transition"
+                    >
+                      <img src={p.src} alt={p.name} className="w-[44px] h-[44px] object-contain" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+            </>
+          )}
         </DialogContent>
       </Dialog>
 
       <div className="w-full min-h-screen bg-background flex flex-col items-center overflow-x-hidden font-sans transition-colors duration-300">
 
-        <main className="w-full max-w-[1440px] px-4 lg:px-[20px] pt-[20px] pb-20 flex flex-col relative z-10">
+        <main className="w-full max-w-[1440px] px-4 lg:px-[20px] pt-[20px] pb-6 flex flex-col relative z-10">
 
           {/* Running Text / Marquee Section */}
           {rtConfig.is_enabled && runningTexts.length > 0 && (
@@ -228,7 +274,7 @@ export default function HomePage() {
               ))
             ) : promos.length > 0 ? (
               promos.map((item, idx) => (
-                <div key={item.id || idx} className="flex flex-col md:flex-row w-full h-auto md:h-[264px] transition-colors md:gap-[20px] gap-4">
+                <div key={item.id || idx} onClick={() => router.push(`/promo/${item.id}`)} className="group cursor-pointer flex flex-col md:flex-row w-full h-auto md:h-[264px] transition-colors md:gap-[20px] gap-4">
                   {/* foto promo */}
                   <div className="w-full md:w-[264px] md:h-[264px] aspect-square shrink-0 bg-primary/15 relative flex items-center justify-center overflow-hidden shadow-sm rounded-md md:rounded-none">
                     {item.src ? (
@@ -253,7 +299,7 @@ export default function HomePage() {
                         {item.promo || "Detail promo tidak tersedia."}
                       </p>
                       <div className="mt-3">
-                        <span className={`font-medium text-[14px] md:text-[16px] text-brand-accent cursor-pointer hover:underline ${outfit.className}`} onClick={() => router.push(`/promo/${item.id}`)}>
+                        <span className={`font-medium text-[14px] md:text-[16px] text-brand-accent cursor-pointer hover:underline ${outfit.className}`}>
                           more
                         </span>
                       </div>
@@ -341,7 +387,10 @@ export default function HomePage() {
                       <CarouselItem key={item.id || idx} className="pl-2 md:pl-4 basis-1/2 md:basis-1/3 lg:basis-1/5">
                         <div
                           className="flex flex-col w-full rounded-none overflow-hidden shadow-[0px_4px_4px_rgba(0,0,0,0.25)] border border-primary/10 bg-card transition-colors cursor-pointer group transform-gpu"
-                          onClick={() => setSelectedImage(item.image_url ? (item.image_url.startsWith('http') ? item.image_url : `https://wnozfcqgcmvxvkxbxgfj.supabase.co/storage/v1/object/public/product-images/${item.image_url}`) : null)}
+                          onClick={() => {
+                            const src = item.image_url ? (item.image_url.startsWith('http') ? item.image_url : `https://wnozfcqgcmvxvkxbxgfj.supabase.co/storage/v1/object/public/product-images/${item.image_url}`) : null;
+                            setSelectedProduct({ title: item.name, price: `Rp ${Number(item.price).toLocaleString("id-ID")}`, src });
+                          }}
                         >
                           <div className="w-full aspect-square bg-primary/15 relative overflow-hidden flex items-center justify-center text-gray-500 text-sm transition-colors">
                             {item.image_url ? (
@@ -395,6 +444,55 @@ export default function HomePage() {
               <MapPin className="w-5 h-5 mr-2" />
               Lihat Lokasi
             </button>
+          </section>
+
+          {/* Pemesanan Online Section */}
+          {/* TODO: ganti href dengan link toko Sbagiamu di masing-masing aplikasi */}
+          <section className="w-full mt-[20px] mb-2 flex flex-col md:flex-row items-center justify-between bg-card-alt p-6 md:p-8 border border-primary/20 rounded-md shadow-sm gap-4 transition-colors">
+            <div className="flex flex-col gap-2 text-center md:text-left">
+              <h2 className={`text-[20px] md:text-[28px] font-[600] text-primary ${outfit.className}`}>
+                Sbagiamu Kini Hadir Online
+              </h2>
+              <p className={`text-[14px] md:text-[16px] text-primary/70 ${outfit.className}`}>
+                Sekarang tersedia pemesanan melalui GrabFood, ShopeeFood, dan GoFood.
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-3 shrink-0">
+              {orderPlatforms.map((p) => (
+                <a
+                  key={p.name}
+                  href={p.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Pesan lewat ${p.name}`}
+                  className="block w-[48px] h-[48px] md:w-[60px] md:h-[60px] bg-transparent hover:scale-110 transition-transform"
+                >
+                  <Image src={p.src} alt={p.name} width={60} height={60} className="w-full h-full object-contain bg-transparent" />
+                </a>
+              ))}
+            </div>
+          </section>
+
+          {/* Google Review Section */}
+          {/* TODO: ganti href dengan link ulasan Google Maps toko Sbagiamu */}
+          <section className="w-full mt-[20px] mb-2 flex flex-col md:flex-row items-center justify-between bg-card-alt p-6 md:p-8 border border-primary/20 rounded-md shadow-sm gap-4 transition-colors">
+            <div className="flex flex-col gap-2 text-center md:text-left">
+              <h2 className={`text-[20px] md:text-[28px] font-[600] text-primary ${outfit.className}`}>
+                Bagaimana Pengalaman Anda?
+              </h2>
+              <p className={`text-[14px] md:text-[16px] text-primary/70 ${outfit.className}`}>
+                Berikan ulasan dan bagikan momen seru Anda bersama Sbagiamu di Google.
+              </p>
+            </div>
+            <a
+              href={extLinks.google_review_link || "https://google.com/maps"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex items-center justify-center px-6 py-3 bg-primary text-primary-foreground rounded-[100px] hover:opacity-90 transition-opacity font-medium text-[14px] md:text-[16px] shrink-0 shadow-md ${outfit.className}`}
+            >
+              <Star className="w-5 h-5 mr-2 fill-current" />
+              Ulas Kami di Google
+            </a>
           </section>
 
           {/* Decorative Line 5 */}
@@ -470,6 +568,37 @@ export default function HomePage() {
               <div className="w-full text-center text-gray-500 py-10">Belum ada article aktif</div>
             )}
           </section>
+
+          {/* Footer Social Media */}
+          <footer className="w-full mt-10 mb-0 flex flex-col items-center justify-center gap-4">
+            <div className="w-full h-px bg-primary/20 mb-2"></div>
+            <p className={`text-[14px] md:text-[16px] text-primary/70 font-[500] ${outfit.className}`}>
+              Ikuti Kami di Media Sosial
+            </p>
+            <div className="flex items-center gap-4">
+              {/* Instagram */}
+              <a href={extLinks.instagram_link || "https://instagram.com"} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-card-alt border border-primary/20 text-primary/80 hover:text-primary hover:bg-primary/10 transition-colors">
+                <AiFillInstagram className="w-5 h-5" />
+              </a>
+              {/* Facebook */}
+              <a href={extLinks.facebook_link || "https://facebook.com"} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-card-alt border border-primary/20 text-primary/80 hover:text-primary hover:bg-primary/10 transition-colors">
+                <FaFacebook className="w-5 h-5" />
+              </a>
+              {/* TikTok */}
+              <a href={extLinks.tiktok_link || "https://tiktok.com"} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-card-alt border border-primary/20 text-primary/80 hover:text-primary hover:bg-primary/10 transition-colors">
+                <AiFillTikTok className="w-5 h-5" />
+              </a>
+              {/* YouTube */}
+              <a href={extLinks.youtube_link || "https://youtube.com"} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-card-alt border border-primary/20 text-primary/80 hover:text-primary hover:bg-primary/10 transition-colors">
+                <FaYoutube className="w-5 h-5" />
+              </a>
+              {/* Website */}
+              <a href={extLinks.website_link || "https://sbagiamu.com"} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-card-alt border border-primary/20 text-primary/80 hover:text-primary hover:bg-primary/10 transition-colors">
+                <BsBrowserChrome className="w-5 h-5" />
+              </a>
+            </div>
+
+          </footer>
 
         </main>
       </div>
