@@ -62,7 +62,7 @@ export function ThemeToggleFab() {
         dragElastic={0.1}
         dragMomentum={false}
         whileDrag={{ scale: 1.05, cursor: "grabbing" }}
-        className="md:hidden fixed z-50 bottom-24 right-4 flex flex-col-reverse items-center gap-3"
+        className="md:hidden fixed z-50 bottom-24 left-4 flex flex-col-reverse items-center gap-3"
       >
         {/* Main Floating Button */}
         <button

@@ -117,7 +117,7 @@ export default function PagesPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2 md:col-span-2">
-                <Label>Provinsi</Label>
+                <span className="text-xs font-semibold block text-foreground">Provinsi</span>
                 <LocationCombobox
                   value={selectedProvince}
                   onChange={(val) => setSelectedProvince(val)}
@@ -129,7 +129,7 @@ export default function PagesPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Kabupaten / Kota</Label>
+                <span className="text-xs font-semibold block text-foreground">Kabupaten / Kota</span>
                 <LocationCombobox
                   value={selectedRegency}
                   onChange={(val) => setSelectedRegency(val)}
@@ -142,7 +142,7 @@ export default function PagesPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Kecamatan</Label>
+                <span className="text-xs font-semibold block text-foreground">Kecamatan</span>
                 <LocationCombobox
                   value={selectedDistrict}
                   onChange={(val) => setSelectedDistrict(val)}

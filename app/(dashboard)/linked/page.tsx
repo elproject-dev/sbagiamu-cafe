@@ -9,15 +9,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 const linkKeys = [
-  { key: "grabfood_link", label: "GrabFood Link", default: "https://food.grab.com/" },
-  { key: "shopeefood_link", label: "ShopeeFood Link", default: "https://shopee.co.id/shopeefood" },
-  { key: "gofood_link", label: "GoFood Link", default: "https://gofood.co.id/" },
-  { key: "google_review_link", label: "Google Review Link", default: "https://google.com/maps" },
-  { key: "instagram_link", label: "Instagram Link", default: "https://instagram.com" },
-  { key: "facebook_link", label: "Facebook Link", default: "https://facebook.com" },
-  { key: "tiktok_link", label: "TikTok Link", default: "https://tiktok.com" },
-  { key: "youtube_link", label: "YouTube Link", default: "https://youtube.com" },
-  { key: "website_link", label: "Website Link", default: "https://sbagiamu.com" },
+  { key: "grabfood_link", label: "GrabFood Link", placeholder: "Contoh: https://food.grab.com/..." },
+  { key: "shopeefood_link", label: "ShopeeFood Link", placeholder: "Contoh: https://shopee.co.id/shopeefood/..." },
+  { key: "gofood_link", label: "GoFood Link", placeholder: "Contoh: https://gofood.co.id/..." },
+  { key: "google_review_link", label: "Google Review Link", placeholder: "Contoh: https://g.page/r/.../review" },
+  { key: "instagram_link", label: "Instagram Link", placeholder: "Contoh: https://instagram.com/sbagiamu" },
+  { key: "facebook_link", label: "Facebook Link", placeholder: "Contoh: https://facebook.com/sbagiamu" },
+  { key: "tiktok_link", label: "TikTok Link", placeholder: "Contoh: https://tiktok.com/@sbagiamu" },
+  { key: "youtube_link", label: "YouTube Link", placeholder: "Contoh: https://youtube.com/@sbagiamu" },
+  { key: "website_link", label: "Website Link", placeholder: "Contoh: https://sbagiamu.cafe" },
 ]
 
 export default function LinkedPage() {
@@ -33,13 +33,12 @@ export default function LinkedPage() {
       if (!error && data) {
         const currentLinks: Record<string, string> = {}
         data.forEach(item => {
-          currentLinks[item.key] = item.value
+          currentLinks[item.key] = item.value || ""
         })
-        
-        // Fill defaults if missing
+        // Initialize empty for missing keys without forcing default URLs
         linkKeys.forEach(l => {
-          if (!currentLinks[l.key]) {
-            currentLinks[l.key] = l.default
+          if (currentLinks[l.key] === undefined) {
+            currentLinks[l.key] = ""
           }
         })
         setLinks(currentLinks)
@@ -59,17 +58,25 @@ export default function LinkedPage() {
     setIsSaving(true)
     let hasError = false;
 
-    for (const [key, value] of Object.entries(links)) {
-      const { data } = await supabase.from('app_config').select('id').eq('key', key).maybeSingle()
+    for (const item of linkKeys) {
+      const value = links[item.key] ? links[item.key].trim() : ""
+      const { data } = await supabase.from('app_config').select('id').eq('key', item.key).maybeSingle()
       if (data) {
-        const { error } = await supabase.from('app_config').update({ value, updated_at: new Date().toISOString() }).eq('key', key)
+        const { error } = await supabase.from('app_config').update({ value, updated_at: new Date().toISOString() }).eq('key', item.key)
         if (error) hasError = true;
       } else {
-        const { error } = await supabase.from('app_config').insert({ key, value })
+        const { error } = await supabase.from('app_config').insert({ key: item.key, value })
         if (error) hasError = true;
       }
     }
     
+    // Invalidate home cache so new link configuration immediately updates home page
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.removeItem("sbagiamu_home_cache")
+      } catch (e) {}
+    }
+
     if (hasError) {
       toast.add({ title: "Gagal menyimpan", description: "Beberapa tautan gagal disimpan", type: "error" })
     } else {
@@ -97,11 +104,14 @@ export default function LinkedPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           {linkKeys.map((item) => (
             <div key={item.key} className="space-y-2">
-              <label className="text-sm font-medium text-primary">{item.label}</label>
+              <label htmlFor={item.key} className="text-sm font-medium text-primary cursor-pointer block">
+                {item.label}
+              </label>
               <Input
+                id={item.key}
                 value={links[item.key] || ""}
                 onChange={(e) => handleChange(item.key, e.target.value)}
-                placeholder={`Masukkan ${item.label}`}
+                placeholder={item.placeholder}
                 className="w-full bg-background"
               />
             </div>
@@ -117,3 +127,4 @@ export default function LinkedPage() {
     </div>
   )
 }
+

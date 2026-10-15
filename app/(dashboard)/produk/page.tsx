@@ -21,10 +21,10 @@ export default function ProdukPage() {
   const [extLinks, setExtLinks] = useState<Record<string, string>>({})
 
   const orderPlatforms = [
-    { name: "GrabFood", src: "/grabfood.png", href: extLinks.grabfood_link || "https://food.grab.com/" },
-    { name: "ShopeeFood", src: "/shopeefood.png", href: extLinks.shopeefood_link || "https://shopee.co.id/shopeefood" },
-    { name: "GoFood", src: "/gofood.png", href: extLinks.gofood_link || "https://gofood.co.id/" },
-  ]
+    { name: "GrabFood", src: "/grabfood.png", href: extLinks.grabfood_link },
+    { name: "ShopeeFood", src: "/shopeefood.png", href: extLinks.shopeefood_link },
+    { name: "GoFood", src: "/gofood.png", href: extLinks.gofood_link },
+  ].filter((p) => Boolean(p.href && p.href.trim() !== ""));
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([])
   const [selectedCategory, setSelectedCategory] = useState<{ id: number; name: string } | null>(null)
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -119,23 +119,25 @@ export default function ProdukPage() {
                   <p className={`text-[18px] font-[800] text-white drop-shadow ${outfit.className}`}>{selectedProduct.price}</p>
                 </div>
               </div>
-              <div className="px-5 py-4 flex flex-col gap-2">
-                <p className={`text-[13px] text-primary/70 ${outfit.className}`}>Pesan melalui</p>
-                <div className="grid grid-cols-3 gap-3">
-                  {orderPlatforms.map((p) => (
-                    <a
-                      key={p.name}
-                      href={p.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`Pesan lewat ${p.name}`}
-                      className="flex items-center justify-center rounded-lg bg-primary/5 py-2 hover:bg-primary/10 hover:scale-105 transition"
-                    >
-                      <img src={p.src} alt={p.name} className="w-[44px] h-[44px] object-contain" />
-                    </a>
-                  ))}
+              {orderPlatforms.length > 0 && (
+                <div className="px-5 py-4 flex flex-col gap-2">
+                  <p className={`text-[13px] text-primary/70 ${outfit.className}`}>Pesan melalui</p>
+                  <div className="flex items-center justify-center gap-3">
+                    {orderPlatforms.map((p) => (
+                      <a
+                        key={p.name}
+                        href={p.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Pesan lewat ${p.name}`}
+                        className="flex items-center justify-center rounded-lg bg-primary/5 p-2 hover:bg-primary/10 hover:scale-105 transition"
+                      >
+                        <img src={p.src} alt={p.name} className="w-[44px] h-[44px] object-contain" />
+                      </a>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
             </>
           )}

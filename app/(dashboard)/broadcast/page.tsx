@@ -311,8 +311,9 @@ export default function BroadcastPage() {
  </DialogHeader>
  <div className="space-y-3 py-2">
  <div className="space-y-1">
- <Label className="text-xs">Label Template</Label>
+ <Label htmlFor="templateLabelInput" className="text-xs cursor-pointer">Label Template</Label>
  <Input
+ id="templateLabelInput"
  placeholder="contoh : Promo Merdeka"
  className="h-8 text-xs"
  value={newLabel}
@@ -321,8 +322,9 @@ export default function BroadcastPage() {
  />
  </div>
  <div className="space-y-1">
- <Label className="text-xs">Judul Notifikasi</Label>
+ <Label htmlFor="templateTitleInput" className="text-xs cursor-pointer">Judul Notifikasi</Label>
  <Input
+ id="templateTitleInput"
  placeholder="Masukkan judul notifikasi..."
  className="h-8 text-xs"
  value={newTitle}
@@ -331,8 +333,9 @@ export default function BroadcastPage() {
  />
  </div>
  <div className="space-y-1">
- <Label className="text-xs">Isi Pesan</Label>
+ <Label htmlFor="templateBodyInput" className="text-xs cursor-pointer">Isi Pesan</Label>
  <Textarea
+ id="templateBodyInput"
  placeholder="Tuliskan isi pesan broadcast..."
  className="text-xs min-h-[80px]"
  rows={3}

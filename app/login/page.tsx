@@ -21,6 +21,57 @@ export default function LoginPage() {
  const [isCheckingSession, setIsCheckingSession] = useState(true)
  const router = useRouter()
 
+ // Inisialisasi background dari localStorage agar sama dan instan dengan landing page
+ const [bgDesktop, setBgDesktop] = useState<string>(() => {
+  if (typeof window !== "undefined") {
+   return localStorage.getItem("landing_bg_desktop") || "/cofee-bg.webp"
+  }
+  return "/cofee-bg.webp"
+ })
+ const [bgMobile, setBgMobile] = useState<string>(() => {
+  if (typeof window !== "undefined") {
+   return localStorage.getItem("landing_bg_mobile") || "/cofee-bg.webp"
+  }
+  return "/cofee-bg.webp"
+ })
+ const [bgFit, setBgFit] = useState<string>(() => {
+  if (typeof window !== "undefined") {
+   return localStorage.getItem("landing_bg_fit") || "fill"
+  }
+  return "fill"
+ })
+
+ React.useEffect(() => {
+  const fetchBackgrounds = async () => {
+   try {
+    const { data } = await supabase
+     .from("app_config")
+     .select("key, value")
+     .in("key", ["landing_bg_desktop", "landing_bg_mobile", "landing_bg_fit"])
+
+    if (data) {
+     data.forEach((item) => {
+      if (item.key === "landing_bg_desktop" && item.value) {
+       setBgDesktop(item.value)
+       try { localStorage.setItem("landing_bg_desktop", item.value) } catch (e) {}
+      }
+      if (item.key === "landing_bg_mobile" && item.value) {
+       setBgMobile(item.value)
+       try { localStorage.setItem("landing_bg_mobile", item.value) } catch (e) {}
+      }
+      if (item.key === "landing_bg_fit" && item.value) {
+       setBgFit(item.value)
+       try { localStorage.setItem("landing_bg_fit", item.value) } catch (e) {}
+      }
+     })
+    }
+   } catch (err) {
+    console.error("Gagal mengambil background login:", err)
+   }
+  }
+  fetchBackgrounds()
+ }, [])
+
  const getNextPath = () => {
  if (typeof window !== "undefined") {
  const params = new URLSearchParams(window.location.search)
@@ -111,13 +162,30 @@ export default function LoginPage() {
 
  return (
  <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-4 relative overflow-hidden bg-primary dark:bg-background">
- {/* Background Image */}
+ {/* Background Image Desktop (Layar Lebar / Desktop md+) */}
  <div
- className="absolute inset-0 bg-cover bg-center bg-no-repeat"
- style={{ backgroundImage: "url('/cofee-bg.webp')", opacity: 0.9 }}
- ></div>
+  className="hidden md:block absolute inset-0 w-full h-full z-0"
+  style={{
+   backgroundImage: `url('${bgDesktop || "/cofee-bg.webp"}')`,
+   backgroundSize: bgFit === "fill" ? "100% 100%" : bgFit === "contain" ? "contain" : "cover",
+   backgroundPosition: "center",
+   backgroundRepeat: "no-repeat",
+  }}
+ />
+
+ {/* Background Image Mobile (Layar Smartphone < md) */}
+ <div
+  className="block md:hidden absolute inset-0 w-full h-full z-0"
+  style={{
+   backgroundImage: `url('${bgMobile || bgDesktop || "/cofee-bg.webp"}')`,
+   backgroundSize: bgFit === "fill" ? "100% 100%" : bgFit === "contain" ? "contain" : "cover",
+   backgroundPosition: "center",
+   backgroundRepeat: "no-repeat",
+  }}
+ />
+
  {/* Overlay */}
- <div className="absolute inset-0 bg-black/40 z-0"></div>
+ <div className="absolute inset-0 bg-black/40 z-0 pointer-events-none"></div>
 
  <div className="w-full max-w-sm flex flex-col items-center gap-6 relative z-10 mx-auto">
  <Card className="w-full aspect-square shadow-2xl shadow-black/20 border-4 border-card-alt/80 dark:border-primary/40 flex flex-col justify-center p-6 bg-background/95 backdrop-blur-md rounded-sm" size="sm">

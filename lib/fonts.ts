@@ -17,10 +17,11 @@ import {
   Satisfy,
   Oswald,
   Great_Vibes,
+  Poppins,
 } from "next/font/google"
 
 // Outfit adalah variable font: satu file mencakup semua weight (300-800).
-export const outfit = Outfit({ subsets: ["latin"], variable: "--font-sans" })
+export const outfit = Outfit({ subsets: ["latin"], variable: "--font-sans", preload: false })
 export const jockey = Jockey_One({ weight: "400", subsets: ["latin"], preload: false })
 export const mclaren = McLaren({ weight: "400", subsets: ["latin"], preload: false })
 
@@ -39,6 +40,7 @@ export const montserrat = Montserrat({ subsets: ["latin"], preload: false })
 export const satisfy = Satisfy({ weight: "400", subsets: ["latin"], preload: false })
 export const oswald = Oswald({ subsets: ["latin"], preload: false })
 export const greatVibes = Great_Vibes({ weight: "400", subsets: ["latin"], preload: false })
+export const poppins = Poppins({ weight: ["400", "500", "600", "700"], subsets: ["latin"], preload: false })
 
 export interface HeroFontOption {
   id: string
@@ -54,6 +56,7 @@ export const HERO_FONTS: HeroFontOption[] = [
   { id: "righteous", name: "Righteous", category: "Display / Bold", className: righteous.className, description: "Modern Retro Display" },
   { id: "oswald", name: "Oswald", category: "Display / Bold", className: oswald.className, description: "Klasik Bold Tegak" },
 
+  { id: "poppins", name: "Poppins", category: "Modern & Ramah", className: poppins.className, description: "Geometris Populer & Bersih" },
   { id: "mclaren", name: "McLaren", category: "Modern & Ramah", className: mclaren.className, description: "Ceria & Bersahabat" },
   { id: "outfit", name: "Outfit", category: "Modern & Ramah", className: outfit.className, description: "Geometris & Minimalis" },
   { id: "plus_jakarta", name: "Plus Jakarta Sans", category: "Modern & Ramah", className: plusJakarta.className, description: "Kontemporer Elegan" },

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { BottomNavigation } from "@/components/bottom-navigation"
 import { TopBar } from "@/components/top-bar"
 import { AdminFAB } from "@/components/admin-fab"
+import { WhatsAppButton } from "@/components/whatsapp-button"
 import { supabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import { toast } from "@/components/ui/toast"
@@ -79,6 +80,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
  </div>
  <BottomNavigation />
  {isAdmin && <AdminFAB />}
+ <WhatsAppButton />
  </div>
  </>
  )

@@ -15,8 +15,6 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
 
-import { LoadingSpinner } from "@/components/loading-spinner";
-
 
 export default function HomePage() {
   const router = useRouter();
@@ -37,50 +35,106 @@ export default function HomePage() {
   const [extLinks, setExtLinks] = useState<Record<string, string>>({});
 
   const orderPlatforms = [
-    { name: "GrabFood", src: "/grabfood.png", href: extLinks.grabfood_link || "https://food.grab.com/" },
-    { name: "ShopeeFood", src: "/shopeefood.png", href: extLinks.shopeefood_link || "https://shopee.co.id/shopeefood" },
-    { name: "GoFood", src: "/gofood.png", href: extLinks.gofood_link || "https://gofood.co.id/" },
-  ];
+    { name: "GrabFood", src: "/grabfood.png", href: extLinks.grabfood_link },
+    { name: "ShopeeFood", src: "/shopeefood.png", href: extLinks.shopeefood_link },
+    { name: "GoFood", src: "/gofood.png", href: extLinks.gofood_link },
+  ].filter((p) => Boolean(p.href && p.href.trim() !== ""));
 
   const bannerPlugin = useRef(Autoplay({ delay: 4000, stopOnInteraction: true }));
   const productPlugin = useRef(Autoplay({ delay: 3000, stopOnInteraction: true }));
 
   useEffect(() => {
+    // 1. Instantly restore from cache if available (0ms loading on repeat views)
+    try {
+      const cached = sessionStorage.getItem("sbagiamu_home_cache");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.banners) setBanners(parsed.banners);
+        if (parsed.promos) setPromos(parsed.promos);
+        if (parsed.products) setProducts(parsed.products);
+        if (parsed.articles) setArticles(parsed.articles);
+        if (parsed.heroText) setHeroText(parsed.heroText);
+        if (parsed.heroFont) setHeroFont(parsed.heroFont);
+        if (parsed.heroImage) setHeroImage(parsed.heroImage);
+        if (parsed.hero2Text) setHero2Text(parsed.hero2Text);
+        if (parsed.hero2Font) setHero2Font(parsed.hero2Font);
+        if (parsed.hero2Image) setHero2Image(parsed.hero2Image);
+        if (parsed.extLinks) setExtLinks(parsed.extLinks);
+        if (parsed.runningTexts) setRunningTexts(parsed.runningTexts);
+        if (parsed.rtConfig) setRtConfig(parsed.rtConfig);
+        setIsLoading(false);
+      }
+    } catch {
+      // ignore
+    }
+
+    // 2. Fetch all data in one parallel request
     async function fetchData() {
       try {
-        const [bannersRes, promosRes, productsRes, configRes, articlesRes] = await Promise.all([
-          supabase.from("banner").select("*").order("created_at", { ascending: false }),
+        const [
+          bannersRes,
+          promosRes,
+          productsRes,
+          configRes,
+          articlesRes,
+          rtRes,
+          rtConfRes
+        ] = await Promise.all([
+          supabase.from("banner").select("*").eq("is_active", true).order("created_at", { ascending: false }),
           supabase.from("promo").select("*").eq("is_active", true).order("created_at", { ascending: false }).limit(5),
           supabase.from("products").select("*").eq("is_active", true).order("sort_order", { ascending: true, nullsFirst: false }).order("id", { ascending: true }).limit(10),
           supabase.from("app_config").select("key, value").in("key", ["hero_banner_text", "hero_banner_image", "hero_banner_font", "hero_banner2_text", "hero_banner2_image", "hero_banner2_font", "grabfood_link", "shopeefood_link", "gofood_link", "google_review_link", "instagram_link", "facebook_link", "tiktok_link", "youtube_link", "website_link"]),
-          supabase.from("article").select("*").eq("is_active", true).order("created_at", { ascending: false }).limit(5)
+          supabase.from("article").select("*").eq("is_active", true).order("created_at", { ascending: false }).limit(5),
+          supabase.from("running_text").select("*").eq("is_active", true).order("created_at", { ascending: true }),
+          supabase.from("running_text_config").select("*").eq("id", 1).maybeSingle()
         ]);
 
         if (bannersRes.data) setBanners(bannersRes.data);
         if (promosRes.data) setPromos(promosRes.data);
         if (productsRes.data) setProducts(productsRes.data);
         if (articlesRes.data) setArticles(articlesRes.data);
+        if (rtRes.data) setRunningTexts(rtRes.data);
+        if (rtConfRes.data) setRtConfig(rtConfRes.data);
+
+        let hText = heroText;
+        let hImage = heroImage;
+        let hFont = heroFont;
+        let h2Text = hero2Text;
+        let h2Image = hero2Image;
+        let h2Font = hero2Font;
+        const linksObj: Record<string, string> = {};
+
         if (configRes.data) {
-          const linksObj: Record<string, string> = {};
           configRes.data.forEach(item => {
-            if (item.key === 'hero_banner_text') setHeroText(item.value);
-            else if (item.key === 'hero_banner_image') setHeroImage(item.value);
-            else if (item.key === 'hero_banner_font' && item.value) setHeroFont(item.value);
-            else if (item.key === 'hero_banner2_text') setHero2Text(item.value);
-            else if (item.key === 'hero_banner2_image') setHero2Image(item.value);
-            else if (item.key === 'hero_banner2_font' && item.value) setHero2Font(item.value);
+            if (item.key === 'hero_banner_text') { setHeroText(item.value); hText = item.value; }
+            else if (item.key === 'hero_banner_image') { setHeroImage(item.value); hImage = item.value; }
+            else if (item.key === 'hero_banner_font') { setHeroFont(item.value); hFont = item.value; }
+            else if (item.key === 'hero_banner2_text') { setHero2Text(item.value); h2Text = item.value; }
+            else if (item.key === 'hero_banner2_image') { setHero2Image(item.value); h2Image = item.value; }
+            else if (item.key === 'hero_banner2_font') { setHero2Font(item.value); h2Font = item.value; }
             else linksObj[item.key] = item.value;
           });
           setExtLinks(linksObj);
         }
 
         try {
-          const rtRes = await supabase.from("running_text").select("*").eq("is_active", true).order("created_at", { ascending: true });
-          const rtConfRes = await supabase.from("running_text_config").select("*").eq("id", 1).limit(1);
-          if (rtRes.data) setRunningTexts(rtRes.data);
-          if (rtConfRes.data && rtConfRes.data.length > 0) setRtConfig(rtConfRes.data[0]);
-        } catch (rtErr) {
-          console.error("Error fetching running text:", rtErr);
+          sessionStorage.setItem("sbagiamu_home_cache", JSON.stringify({
+            banners: bannersRes.data || [],
+            promos: promosRes.data || [],
+            products: productsRes.data || [],
+            articles: articlesRes.data || [],
+            heroText: hText,
+            heroFont: hFont,
+            heroImage: hImage,
+            hero2Text: h2Text,
+            hero2Font: h2Font,
+            hero2Image: h2Image,
+            extLinks: linksObj,
+            runningTexts: rtRes.data || [],
+            rtConfig: rtConfRes.data || { is_enabled: false, speed: 'normal' },
+          }));
+        } catch {
+          // ignore
         }
 
       } catch (error) {
@@ -91,14 +145,6 @@ export default function HomePage() {
     }
     fetchData();
   }, []);
-
-  if (isLoading) {
-    return (
-      <div className="w-full min-h-[100dvh] bg-background flex flex-col items-center justify-center font-sans">
-        <LoadingSpinner text="Memuat beranda..." />
-      </div>
-    );
-  }
 
   return (
     <>
@@ -117,23 +163,25 @@ export default function HomePage() {
                   <p className={`text-[18px] font-[800] text-white drop-shadow ${outfit.className}`}>{selectedProduct.price}</p>
                 </div>
               </div>
-              <div className="px-5 py-4 flex flex-col gap-2">
-                <p className={`text-[13px] text-primary/70 ${outfit.className}`}>Pesan melalui</p>
-                <div className="grid grid-cols-3 gap-3">
-                  {orderPlatforms.map((p) => (
-                    <a
-                      key={p.name}
-                      href={p.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`Pesan lewat ${p.name}`}
-                      className="flex items-center justify-center rounded-lg bg-primary/5 py-2 hover:bg-primary/10 hover:scale-105 transition"
-                    >
-                      <img src={p.src} alt={p.name} className="w-[44px] h-[44px] object-contain" />
-                    </a>
-                  ))}
+              {orderPlatforms.length > 0 && (
+                <div className="px-5 py-4 flex flex-col gap-2">
+                  <p className={`text-[13px] text-primary/70 ${outfit.className}`}>Pesan melalui</p>
+                  <div className="flex items-center justify-center gap-3">
+                    {orderPlatforms.map((p) => (
+                      <a
+                        key={p.name}
+                        href={p.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Pesan lewat ${p.name}`}
+                        className="flex items-center justify-center rounded-lg bg-primary/5 p-2 hover:bg-primary/10 hover:scale-105 transition"
+                      >
+                        <img src={p.src} alt={p.name} className="w-[44px] h-[44px] object-contain" />
+                      </a>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
             </>
           )}
@@ -172,23 +220,23 @@ export default function HomePage() {
           )}
 
           {/* Banner Text Section */}
-          <section className="flex flex-col-reverse lg:flex-row justify-between items-start w-full lg:min-h-[227px] mt-2 lg:mt-[20px] relative">
+          <section className="flex flex-col-reverse lg:flex-row justify-between items-center w-full min-h-[180px] lg:min-h-[227px] mt-2 lg:mt-[20px] gap-6 lg:gap-8">
             {/* frame text */}
-            <div className="w-full lg:w-[927px] relative lg:mt-0 pt-[21px] pb-[21px]">
+            <div className="flex-1 min-w-0 w-full pt-2 pb-2">
               {isLoading ? (
-                <div className="w-full lg:w-[850px] flex flex-col gap-4 items-center lg:items-start pt-4 lg:pt-0">
+                <div className="w-full flex flex-col gap-4 items-center lg:items-start pt-4 lg:pt-0">
                   <div className="h-10 w-3/4 bg-primary/15 animate-pulse rounded" />
                   <div className="h-10 w-1/2 bg-primary/15 animate-pulse rounded" />
                   <div className="h-10 w-1/3 bg-primary/15 animate-pulse rounded" />
                 </div>
               ) : (
-                <h1 className={`w-full lg:w-[850px] text-[24px] md:text-[36px] lg:text-[48px] leading-[120%] text-primary text-center lg:text-left transition-colors font-normal whitespace-pre-wrap break-words ${getHeroFontClass(heroFont)}`}>
+                <h1 className={`w-full text-[24px] md:text-[32px] lg:text-[38px] xl:text-[48px] leading-[120%] text-primary text-center lg:text-left transition-colors font-normal whitespace-pre-wrap break-words ${getHeroFontClass(heroFont)}`}>
                   {heroText}
                 </h1>
               )}
             </div>
             {/* logo banner */}
-            <div className="w-full lg:w-[453px] aspect-[2/1] lg:h-[226.5px] lg:absolute lg:right-0 lg:top-0 bg-primary/15 relative flex-shrink-0 mx-auto lg:mx-0 overflow-hidden rounded-sm">
+            <div className="w-full sm:w-[380px] md:w-[420px] lg:w-[380px] xl:w-[453px] aspect-[2/1] bg-primary/15 relative shrink-0 mx-auto lg:mx-0 overflow-hidden rounded-sm shadow-sm">
               {isLoading ? (
                 <div className="w-full h-full bg-primary/15 animate-pulse" />
               ) : heroImage.startsWith('http') || heroImage.startsWith('/') ? (
@@ -197,7 +245,7 @@ export default function HomePage() {
                   alt="Logo AI"
                   fill
                   priority
-                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  sizes="(max-width: 640px) 100vw, 453px"
                   className="object-cover"
                 />
               ) : (
@@ -250,7 +298,7 @@ export default function HomePage() {
                 </Carousel>
               </div>
             ) : (
-              <div className="w-full text-center text-gray-500 py-10 border rounded-sm border-dashed border-zinc-300 dark:border-zinc-700">Belum ada banner aktif</div>
+              <div className="w-full text-center text-primary py-10 border rounded-sm border-dashed border-zinc-300 dark:border-zinc-700">Belum ada banner aktif</div>
             )}
           </section>
 
@@ -312,7 +360,7 @@ export default function HomePage() {
                 </div>
               ))
             ) : (
-              <div className="w-full text-center text-gray-500 py-10">Belum ada promo aktif</div>
+              <div className="w-full text-center text-primary py-10">Belum ada promo aktif</div>
             )}
           </section>
 
@@ -323,9 +371,9 @@ export default function HomePage() {
           />
 
           {/* Hero Banner 2 Section */}
-          <section className="flex flex-col lg:flex-row justify-between items-start w-full lg:min-h-[227px] mt-[40px] relative">
+          <section className="flex flex-col lg:flex-row justify-between items-center w-full min-h-[180px] lg:min-h-[227px] mt-[40px] gap-6 lg:gap-8">
             {/* logo banner */}
-            <div className="w-full lg:w-[453px] aspect-[2/1] lg:h-[226.5px] lg:absolute lg:left-0 lg:top-0 bg-primary/15 relative flex-shrink-0 mx-auto lg:mx-0 overflow-hidden rounded-sm">
+            <div className="w-full sm:w-[380px] md:w-[420px] lg:w-[380px] xl:w-[453px] aspect-[2/1] bg-primary/15 relative shrink-0 mx-auto lg:mx-0 overflow-hidden rounded-sm shadow-sm">
               {isLoading ? (
                 <div className="w-full h-full bg-primary/15 animate-pulse" />
               ) : hero2Image.startsWith('http') || hero2Image.startsWith('/') ? (
@@ -334,21 +382,21 @@ export default function HomePage() {
                   alt="Banner 2"
                   fill
                   priority
-                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  sizes="(max-width: 640px) 100vw, 453px"
                   className="object-cover"
                 />
               ) : null}
             </div>
             {/* frame text */}
-            <div className="w-full lg:w-[927px] relative mt-4 lg:mt-0 lg:ml-auto pt-[21px] pb-[21px] flex justify-center lg:justify-end">
+            <div className="flex-1 min-w-0 w-full pt-2 pb-2 flex justify-center lg:justify-end">
               {isLoading ? (
-                <div className="w-full lg:w-[850px] flex flex-col gap-4 items-center lg:items-end pt-4 lg:pt-0">
+                <div className="w-full flex flex-col gap-4 items-center lg:items-end pt-4 lg:pt-0">
                   <div className="h-10 w-3/4 bg-primary/15 animate-pulse rounded" />
                   <div className="h-10 w-1/2 bg-primary/15 animate-pulse rounded" />
                   <div className="h-10 w-1/3 bg-primary/15 animate-pulse rounded" />
                 </div>
               ) : (
-                <h1 className={`w-full lg:w-[850px] text-[24px] md:text-[36px] lg:text-[48px] leading-[120%] text-primary text-center lg:text-right transition-colors font-normal whitespace-pre-wrap break-words ${getHeroFontClass(hero2Font)}`}>
+                <h1 className={`w-full text-[24px] md:text-[32px] lg:text-[38px] xl:text-[48px] leading-[120%] text-primary text-center lg:text-right transition-colors font-normal whitespace-pre-wrap break-words ${getHeroFontClass(hero2Font)}`}>
                   {hero2Text}
                 </h1>
               )}
@@ -359,10 +407,15 @@ export default function HomePage() {
           <div className="w-full h-0 border-t-[2px] md:border-t-[5px] border-primary dark:border-primary/30 mt-[40px] transition-colors" />
 
           {/* New Product Title Area */}
-          <div className="flex justify-between items-baseline mt-3">
-            <h2 className={`text-[20px] md:text-[30px] leading-[1.2] text-primary transition-colors ${outfit.className} font-[300]`}>
-              New Product
-            </h2>
+          <div className="flex justify-between items-end mt-3">
+            <div className="flex flex-col text-left">
+              <h2 className={`text-[20px] md:text-[30px] leading-[1.2] text-primary transition-colors ${outfit.className} font-[300]`}>
+                Our Menu
+              </h2>
+              <p className={`text-[10px] md:text-[20px] leading-[20px] md:leading-[25px] font-[300] text-primary text-left transition-colors ${outfit.className}`}>
+                Temukan rasa favoritmu,temukan bahagiamu
+              </p>
+            </div>
             <Link
               href="/produk"
               className={`text-[16px] md:text-[20px] leading-[20px] md:leading-[25px] font-[300] text-primary/80 hover:underline transition-colors ${outfit.className}`}
@@ -424,7 +477,7 @@ export default function HomePage() {
                 </Carousel>
               </div>
             ) : (
-              <div className="w-full text-center text-gray-500 py-10">Belum ada produk aktif</div>
+              <div className="w-full text-center text-primary py-10">Belum ada produk aktif</div>
             )}
           </section>
 
@@ -451,53 +504,55 @@ export default function HomePage() {
           </section>
 
           {/* Pemesanan Online Section */}
-          {/* TODO: ganti href dengan link toko Sbagiamu di masing-masing aplikasi */}
-          <section className="w-full mt-[20px] mb-2 flex flex-col md:flex-row items-center justify-between bg-card-alt p-6 md:p-8 border border-primary/20 rounded-md shadow-sm gap-4 transition-colors">
-            <div className="flex flex-col gap-2 text-center md:text-left">
-              <h2 className={`text-[20px] md:text-[28px] font-[600] text-primary ${outfit.className}`}>
-                Sbagiamu Kini Hadir Online
-              </h2>
-              <p className={`text-[14px] md:text-[16px] text-primary/70 ${outfit.className}`}>
-                Sekarang tersedia pemesanan melalui GrabFood, ShopeeFood, dan GoFood.
-              </p>
-            </div>
-            <div className="flex items-center justify-center gap-3 shrink-0">
-              {orderPlatforms.map((p) => (
-                <a
-                  key={p.name}
-                  href={p.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`Pesan lewat ${p.name}`}
-                  className="block w-[48px] h-[48px] md:w-[60px] md:h-[60px] bg-transparent hover:scale-110 transition-transform"
-                >
-                  <Image src={p.src} alt={p.name} width={60} height={60} className="w-full h-full object-contain bg-transparent" />
-                </a>
-              ))}
-            </div>
-          </section>
+          {orderPlatforms.length > 0 && (
+            <section className="w-full mt-[20px] mb-2 flex flex-col md:flex-row items-center justify-between bg-card-alt p-6 md:p-8 border border-primary/20 rounded-md shadow-sm gap-4 transition-colors">
+              <div className="flex flex-col gap-2 text-center md:text-left">
+                <h2 className={`text-[20px] md:text-[28px] font-[600] text-primary ${outfit.className}`}>
+                  Sbagiamu Kini Hadir Online
+                </h2>
+                <p className={`text-[14px] md:text-[16px] text-primary/70 ${outfit.className}`}>
+                  Sekarang tersedia pemesanan melalui {orderPlatforms.map(p => p.name).join(', ')}.
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-3 shrink-0">
+                {orderPlatforms.map((p) => (
+                  <a
+                    key={p.name}
+                    href={p.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Pesan lewat ${p.name}`}
+                    className="block w-[48px] h-[48px] md:w-[60px] md:h-[60px] bg-transparent hover:scale-110 transition-transform"
+                  >
+                    <Image src={p.src} alt={p.name} width={60} height={60} className="w-full h-full object-contain bg-transparent" />
+                  </a>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Google Review Section */}
-          {/* TODO: ganti href dengan link ulasan Google Maps toko Sbagiamu */}
-          <section className="w-full mt-[20px] mb-2 flex flex-col md:flex-row items-center justify-between bg-card-alt p-6 md:p-8 border border-primary/20 rounded-md shadow-sm gap-4 transition-colors">
-            <div className="flex flex-col gap-2 text-center md:text-left">
-              <h2 className={`text-[20px] md:text-[28px] font-[600] text-primary ${outfit.className}`}>
-                Bagaimana Pengalaman Anda?
-              </h2>
-              <p className={`text-[14px] md:text-[16px] text-primary/70 ${outfit.className}`}>
-                Berikan ulasan dan bagikan momen seru Anda bersama Sbagiamu di Google.
-              </p>
-            </div>
-            <a
-              href={extLinks.google_review_link || "https://google.com/maps"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`flex items-center justify-center px-6 py-3 bg-primary text-primary-foreground rounded-[100px] hover:opacity-90 transition-opacity font-medium text-[14px] md:text-[16px] shrink-0 shadow-md ${outfit.className}`}
-            >
-              <Star className="w-5 h-5 mr-2 fill-current" />
-              Ulas Kami di Google
-            </a>
-          </section>
+          {Boolean(extLinks.google_review_link && extLinks.google_review_link.trim() !== "") && (
+            <section className="w-full mt-[20px] mb-2 flex flex-col md:flex-row items-center justify-between bg-card-alt p-6 md:p-8 border border-primary/20 rounded-md shadow-sm gap-4 transition-colors">
+              <div className="flex flex-col gap-2 text-center md:text-left">
+                <h2 className={`text-[20px] md:text-[28px] font-[600] text-primary ${outfit.className}`}>
+                  Bagaimana Pengalaman Anda?
+                </h2>
+                <p className={`text-[14px] md:text-[16px] text-primary/70 ${outfit.className}`}>
+                  Berikan ulasan dan bagikan momen seru Anda bersama Sbagiamu di Google.
+                </p>
+              </div>
+              <a
+                href={extLinks.google_review_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex items-center justify-center px-6 py-3 bg-primary text-primary-foreground rounded-[100px] hover:opacity-90 transition-opacity font-medium text-[14px] md:text-[16px] shrink-0 shadow-md ${outfit.className}`}
+              >
+                <Star className="w-5 h-5 mr-2 fill-current" />
+                Ulas Kami di Google
+              </a>
+            </section>
+          )}
 
           {/* Decorative Line 5 */}
           <div className="w-full h-0 border-t-[2px] md:border-t-[5px] border-primary dark:border-primary/30 mt-[40px] transition-colors" />
@@ -569,40 +624,62 @@ export default function HomePage() {
                 </div>
               ))
             ) : (
-              <div className="w-full text-center text-gray-500 py-10">Belum ada article aktif</div>
+              <div className="w-full text-center text-primary py-10">Belum ada article aktif</div>
             )}
           </section>
 
           {/* Footer Social Media */}
-          <footer className="w-full mt-10 mb-0 flex flex-col items-center justify-center gap-4">
-            <div className="w-full h-px bg-primary/20 mb-2"></div>
-            <p className={`text-[14px] md:text-[16px] text-primary/70 font-[500] ${outfit.className}`}>
-              Ikuti Kami di Media Sosial
-            </p>
-            <div className="flex items-center gap-4">
-              {/* Instagram */}
-              <a href={extLinks.instagram_link || "https://instagram.com"} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-card-alt border border-primary/20 text-primary/80 hover:text-primary hover:bg-primary/10 transition-colors">
-                <AiFillInstagram className="w-5 h-5" />
-              </a>
-              {/* Facebook */}
-              <a href={extLinks.facebook_link || "https://facebook.com"} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-card-alt border border-primary/20 text-primary/80 hover:text-primary hover:bg-primary/10 transition-colors">
-                <FaFacebook className="w-5 h-5" />
-              </a>
-              {/* TikTok */}
-              <a href={extLinks.tiktok_link || "https://tiktok.com"} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-card-alt border border-primary/20 text-primary/80 hover:text-primary hover:bg-primary/10 transition-colors">
-                <AiFillTikTok className="w-5 h-5" />
-              </a>
-              {/* YouTube */}
-              <a href={extLinks.youtube_link || "https://youtube.com"} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-card-alt border border-primary/20 text-primary/80 hover:text-primary hover:bg-primary/10 transition-colors">
-                <FaYoutube className="w-5 h-5" />
-              </a>
-              {/* Website */}
-              <a href={extLinks.website_link || "https://sbagiamu.com"} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-card-alt border border-primary/20 text-primary/80 hover:text-primary hover:bg-primary/10 transition-colors">
-                <BsBrowserChrome className="w-5 h-5" />
-              </a>
-            </div>
+          {(() => {
+            const hasInstagram = Boolean(extLinks.instagram_link && extLinks.instagram_link.trim() !== "");
+            const hasFacebook = Boolean(extLinks.facebook_link && extLinks.facebook_link.trim() !== "");
+            const hasTiktok = Boolean(extLinks.tiktok_link && extLinks.tiktok_link.trim() !== "");
+            const hasYoutube = Boolean(extLinks.youtube_link && extLinks.youtube_link.trim() !== "");
+            const hasWebsite = Boolean(extLinks.website_link && extLinks.website_link.trim() !== "");
+            const hasAnySocial = hasInstagram || hasFacebook || hasTiktok || hasYoutube || hasWebsite;
 
-          </footer>
+            if (!hasAnySocial) return null;
+
+            return (
+              <footer className="w-full mt-10 mb-0 flex flex-col items-center justify-center gap-4">
+                <div className="w-full h-px bg-primary/20 mb-2"></div>
+                <p className={`text-[14px] md:text-[16px] text-primary/70 font-[500] ${outfit.className}`}>
+                  Ikuti Kami di Media Sosial
+                </p>
+                <div className="flex items-center gap-4">
+                  {/* Instagram */}
+                  {hasInstagram && (
+                    <a href={extLinks.instagram_link} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-card-alt border border-primary/20 text-primary/80 hover:text-primary hover:bg-primary/10 transition-colors" title="Instagram">
+                      <AiFillInstagram className="w-5 h-5" />
+                    </a>
+                  )}
+                  {/* Facebook */}
+                  {hasFacebook && (
+                    <a href={extLinks.facebook_link} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-card-alt border border-primary/20 text-primary/80 hover:text-primary hover:bg-primary/10 transition-colors" title="Facebook">
+                      <FaFacebook className="w-5 h-5" />
+                    </a>
+                  )}
+                  {/* TikTok */}
+                  {hasTiktok && (
+                    <a href={extLinks.tiktok_link} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-card-alt border border-primary/20 text-primary/80 hover:text-primary hover:bg-primary/10 transition-colors" title="TikTok">
+                      <AiFillTikTok className="w-5 h-5" />
+                    </a>
+                  )}
+                  {/* YouTube */}
+                  {hasYoutube && (
+                    <a href={extLinks.youtube_link} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-card-alt border border-primary/20 text-primary/80 hover:text-primary hover:bg-primary/10 transition-colors" title="YouTube">
+                      <FaYoutube className="w-5 h-5" />
+                    </a>
+                  )}
+                  {/* Website */}
+                  {hasWebsite && (
+                    <a href={extLinks.website_link} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-card-alt border border-primary/20 text-primary/80 hover:text-primary hover:bg-primary/10 transition-colors" title="Website">
+                      <BsBrowserChrome className="w-5 h-5" />
+                    </a>
+                  )}
+                </div>
+              </footer>
+            );
+          })()}
 
         </main>
       </div>

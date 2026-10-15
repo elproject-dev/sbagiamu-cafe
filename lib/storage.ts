@@ -149,6 +149,50 @@ export async function uploadMedia(file: File, folder: string = 'images', forBroa
 }
 
 /**
+ * Upload logo khusus ke Supabase Storage bucket "media/topbar_logo"
+ * Mempertahankan transparansi PNG/SVG dan mengompresi format lainnya
+ */
+export async function uploadLogoMedia(file: File): Promise<string | null> {
+  const fileExt = file.name ? file.name.split('.').pop()?.toLowerCase() || 'png' : 'png'
+  const isSvg = fileExt === 'svg' || file.type.includes('svg')
+  const isPng = fileExt === 'png' || file.type.includes('png')
+
+  let finalBlob: Blob = file
+  let contentType = file.type || (isPng ? 'image/png' : isSvg ? 'image/svg+xml' : 'image/webp')
+
+  if (!isSvg && !isPng) {
+    try {
+      finalBlob = await compressImageToWebP(file)
+      contentType = 'image/webp'
+    } catch (e) {
+      // fallback to original file
+    }
+  }
+
+  const cleanName = (file.name || 'logo').replace(/[^a-zA-Z0-9.-]/g, '_')
+  const fileName = `topbar_logo/${Date.now()}-${cleanName}`
+
+  const { data, error } = await supabase.storage
+    .from('media')
+    .upload(fileName, finalBlob, {
+      cacheControl: '3600',
+      upsert: true,
+      contentType: contentType,
+    })
+
+  if (error) {
+    console.error('Upload logo error:', error)
+    return null
+  }
+
+  const { data: urlData } = supabase.storage
+    .from('media')
+    .getPublicUrl(data.path)
+
+  return urlData.publicUrl
+}
+
+/**
  * Upload an avatar to Supabase Storage bucket "media"
  * Uses a fixed filename (userId) and upserts (overwrites) if it exists.
  */
@@ -204,3 +248,92 @@ export async function deleteMedia(publicUrl: string): Promise<{ success: boolean
     return { success: false, error: err.message }
   }
 }
+
+/**
+ * Kompres gambar background dengan resolusi tinggi (1920px untuk desktop, 1080px untuk mobile)
+ */
+export const compressBackgroundToWebP = (file: File | Blob, maxSize: number = 1920): Promise<Blob> => {
+  return new Promise((resolve, reject) => {
+    if (typeof window === 'undefined') return reject(new Error('Bukan di browser'))
+    
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = (event) => {
+      const img = new Image()
+      img.src = event.target?.result as string
+      img.onload = () => {
+        const canvas = document.createElement("canvas")
+        let width = img.width
+        let height = img.height
+
+        if (width > height) {
+          if (width > maxSize) {
+            height = Math.round((height * maxSize) / width)
+            width = maxSize
+          }
+        } else {
+          if (height > maxSize) {
+            width = Math.round((width * maxSize) / height)
+            height = maxSize
+          }
+        }
+
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext("2d")
+        if (!ctx) return reject(new Error("Canvas tidak didukung"))
+
+        ctx.drawImage(img, 0, 0, width, height)
+        canvas.toBlob(
+          (blob) => {
+            if (blob) resolve(blob)
+            else reject(new Error("Kompresi gagal"))
+          },
+          "image/webp",
+          0.85
+        )
+      }
+      img.onerror = (err) => reject(err)
+    }
+    reader.onerror = (err) => reject(err)
+  })
+}
+
+/**
+ * Upload background khusus pembuka ke Supabase Storage bucket "media/landing_bg"
+ */
+export async function uploadLandingBgMedia(file: File, type: 'desktop' | 'mobile'): Promise<string | null> {
+  const maxSize = type === 'desktop' ? 1920 : 1080
+  let finalBlob: Blob = file
+  let contentType = 'image/webp'
+
+  try {
+    finalBlob = await compressBackgroundToWebP(file, maxSize)
+  } catch (err) {
+    console.warn('Gagal kompresi background, menggunakan file asli:', err)
+    contentType = file.type || 'image/jpeg'
+  }
+
+  const cleanName = (file.name || 'bg').replace(/[^a-zA-Z0-9.-]/g, '_')
+  const fileName = `landing_bg/${Date.now()}-${type}-${cleanName}.webp`
+
+  const { data, error } = await supabase.storage
+    .from('media')
+    .upload(fileName, finalBlob, {
+      cacheControl: '3600',
+      upsert: true,
+      contentType: contentType,
+    })
+
+  if (error) {
+    console.error('Upload background error:', error)
+    return null
+  }
+
+  const { data: urlData } = supabase.storage
+    .from('media')
+    .getPublicUrl(data.path)
+
+  return urlData.publicUrl
+}
+

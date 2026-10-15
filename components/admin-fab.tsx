@@ -65,7 +65,7 @@ export function AdminFAB() {
  }, [isOpen])
 
  return (
- <div ref={fabRef} className="fixed bottom-24 right-4 md:bottom-10 md:right-10 z-[100] flex flex-col items-center">
+ <div ref={fabRef} className="fixed bottom-24 left-4 md:bottom-10 md:left-10 z-[100] flex flex-col items-center">
  <AnimatePresence>
  {isOpen && (
  <motion.div
