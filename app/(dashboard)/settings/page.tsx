@@ -1,8 +1,9 @@
 "use client"
 import { toast } from "@/components/ui/toast"
-import { Loader2, Pencil, Tag, Calendar, Package, Image as ImageIcon, Search, Plus, MapPin, X, AlignLeft, Store, Bell, Star, Megaphone, GripVertical } from "lucide-react"
+import { Loader2, Pencil, Tag, Calendar, Package, Image as ImageIcon, Search, Plus, MapPin, X, AlignLeft, Store, Bell, Star, Megaphone, GripVertical, Type } from "lucide-react"
 import { uploadMedia } from "@/lib/storage"
 import { cn } from "@/lib/utils"
+import { HERO_FONTS, getHeroFontClass } from "@/lib/fonts"
 import {
  Dialog,
  DialogContent,
@@ -157,6 +158,7 @@ export default function SettingsPage() {
 
  // Hero Banner states
  const [heroBannerText, setHeroBannerText] = useState("Nikmati Kualitas Coffee Pilihan Premium \\nReal Bean Real Coffee \\n100 % Bahagia")
+ const [heroBannerFont, setHeroBannerFont] = useState("jockey")
  const [heroBannerImage, setHeroBannerImage] = useState("")
  const [heroBannerFileName, setHeroBannerFileName] = useState("")
  const [heroBannerFile, setHeroBannerFile] = useState<File | null>(null)
@@ -164,6 +166,7 @@ export default function SettingsPage() {
 
  // Hero Banner 2 states
  const [heroBanner2Text, setHeroBanner2Text] = useState("Nikmati Kualitas Coffee Pilihan Premium \\nReal Bean Real Coffee \\n100 % Bahagia")
+ const [heroBanner2Font, setHeroBanner2Font] = useState("jockey")
  const [heroBanner2Image, setHeroBanner2Image] = useState("")
  const [heroBanner2FileName, setHeroBanner2FileName] = useState("")
  const [heroBanner2File, setHeroBanner2File] = useState<File | null>(null)
@@ -278,6 +281,7 @@ export default function SettingsPage() {
  }
 
  await saveConfig('hero_banner_text', heroBannerText)
+ await saveConfig('hero_banner_font', heroBannerFont)
  await saveConfig('hero_banner_image', imageUrl)
 
  setHeroBannerImage(imageUrl)
@@ -308,6 +312,7 @@ export default function SettingsPage() {
  }
 
  await saveConfig('hero_banner2_text', heroBanner2Text)
+ await saveConfig('hero_banner2_font', heroBanner2Font)
  await saveConfig('hero_banner2_image', imageUrl)
 
  setHeroBanner2Image(imageUrl)
@@ -326,13 +331,15 @@ export default function SettingsPage() {
  if (data) setLokasis(data)
  }
  const fetchHeroBanner = async () => {
- const { data } = await supabase.from('app_config').select('key, value').in('key', ['hero_banner_text', 'hero_banner_image', 'hero_banner2_text', 'hero_banner2_image']);
+ const { data } = await supabase.from('app_config').select('key, value').in('key', ['hero_banner_text', 'hero_banner_image', 'hero_banner_font', 'hero_banner2_text', 'hero_banner2_image', 'hero_banner2_font']);
  if (data) {
  data.forEach(item => {
  if (item.key === 'hero_banner_text') setHeroBannerText(item.value);
  if (item.key === 'hero_banner_image') setHeroBannerImage(item.value);
+ if (item.key === 'hero_banner_font' && item.value) setHeroBannerFont(item.value);
  if (item.key === 'hero_banner2_text') setHeroBanner2Text(item.value);
  if (item.key === 'hero_banner2_image') setHeroBanner2Image(item.value);
+ if (item.key === 'hero_banner2_font' && item.value) setHeroBanner2Font(item.value);
  });
  }
  }
@@ -1640,6 +1647,37 @@ export default function SettingsPage() {
  className="rounded-none resize-none bg-background text-sm"
  />
  </div>
+
+ <div className="space-y-2">
+ <div className="flex items-center justify-between">
+ <Label htmlFor="heroBannerFontSelect" className="flex items-center gap-1.5 font-medium">
+ <Type className="w-4 h-4 text-primary" />
+ <span>Font / Gaya Tipografi Banner Utama</span>
+ </Label>
+ <span className="text-xs text-primary/70">
+ {HERO_FONTS.find(f => f.id === heroBannerFont)?.category || "Display"}
+ </span>
+ </div>
+ <Select value={heroBannerFont} onValueChange={(val) => { if (val) setHeroBannerFont(val) }}>
+ <SelectTrigger id="heroBannerFontSelect" className="w-full bg-background rounded-none border-primary/20">
+ <SelectValue placeholder="Pilih Font..." />
+ </SelectTrigger>
+ <SelectContent className="max-h-[320px]">
+ {HERO_FONTS.map(f => (
+ <SelectItem key={f.id} value={f.id} className="cursor-pointer py-2 border-b border-primary/5 last:border-0">
+ <div className="flex items-center justify-between w-full gap-4">
+ <span className={cn(f.className, "text-base font-normal tracking-wide text-foreground")}>{f.name}</span>
+ <span className="text-[11px] text-muted-foreground font-sans">({f.category})</span>
+ </div>
+ </SelectItem>
+ ))}
+ </SelectContent>
+ </Select>
+ <p className="text-[11px] text-primary/70">
+ Font yang dipilih akan langsung diterapkan pada banner teks di halaman beranda.
+ </p>
+ </div>
+
  <div className="space-y-2">
  <Label>Foto / Logo Banner Utama</Label>
  <div className="flex flex-col gap-2 relative">
@@ -1701,8 +1739,9 @@ export default function SettingsPage() {
  )}
  </Button>
  </div>
- <div className="w-full md:w-[350px] lg:w-[453px] flex-shrink-0 flex flex-col gap-2">
- <Label>Preview Logo/Gambar Banner</Label>
+ <div className="w-full md:w-[350px] lg:w-[453px] flex-shrink-0 flex flex-col gap-4">
+ <div className="space-y-2">
+ <Label>Preview Logo/Gambar Banner Utama</Label>
  <div className="w-full aspect-[2/1] relative bg-muted rounded-sm overflow-hidden flex items-center justify-center border shadow-sm">
  {heroBannerFile ? (
  <img src={URL.createObjectURL(heroBannerFile)} alt="Preview Logo" className="w-full h-full object-cover absolute inset-0" />
@@ -1711,6 +1750,24 @@ export default function SettingsPage() {
  ) : (
  <span className="text-primary/70 text-sm">Pratinjau Logo Banner</span>
  )}
+ </div>
+ </div>
+
+ <div className="space-y-2">
+ <div className="flex items-center justify-between">
+ <Label>Pratinjau Teks & Font Banner Utama</Label>
+ <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary font-medium">
+ {HERO_FONTS.find(f => f.id === heroBannerFont)?.name || "Jockey One"}
+ </span>
+ </div>
+ <div className="w-full min-h-[120px] p-4 bg-background border border-primary/20 rounded-sm shadow-sm flex items-center justify-center text-center overflow-hidden">
+ <p className={cn(
+ "text-lg sm:text-xl lg:text-2xl text-primary whitespace-pre-wrap break-words leading-tight",
+ getHeroFontClass(heroBannerFont)
+ )}>
+ {heroBannerText || "Nikmati Kualitas Coffee Pilihan Premium\nReal Bean Real Coffee\n100 % Bahagia"}
+ </p>
+ </div>
  </div>
  </div>
  </CardContent>
@@ -1732,6 +1789,37 @@ export default function SettingsPage() {
  className="rounded-none resize-none bg-background text-sm"
  />
  </div>
+
+ <div className="space-y-2">
+ <div className="flex items-center justify-between">
+ <Label htmlFor="heroBanner2FontSelect" className="flex items-center gap-1.5 font-medium">
+ <Type className="w-4 h-4 text-primary" />
+ <span>Font / Gaya Tipografi Banner 2</span>
+ </Label>
+ <span className="text-xs text-primary/70">
+ {HERO_FONTS.find(f => f.id === heroBanner2Font)?.category || "Display"}
+ </span>
+ </div>
+ <Select value={heroBanner2Font} onValueChange={(val) => { if (val) setHeroBanner2Font(val) }}>
+ <SelectTrigger id="heroBanner2FontSelect" className="w-full bg-background rounded-none border-primary/20">
+ <SelectValue placeholder="Pilih Font..." />
+ </SelectTrigger>
+ <SelectContent className="max-h-[320px]">
+ {HERO_FONTS.map(f => (
+ <SelectItem key={f.id} value={f.id} className="cursor-pointer py-2 border-b border-primary/5 last:border-0">
+ <div className="flex items-center justify-between w-full gap-4">
+ <span className={cn(f.className, "text-base font-normal tracking-wide text-foreground")}>{f.name}</span>
+ <span className="text-[11px] text-muted-foreground font-sans">({f.category})</span>
+ </div>
+ </SelectItem>
+ ))}
+ </SelectContent>
+ </Select>
+ <p className="text-[11px] text-primary/70">
+ Font yang dipilih akan langsung diterapkan pada banner 2 di halaman beranda.
+ </p>
+ </div>
+
  <div className="space-y-2">
  <Label>Foto / Logo Banner 2</Label>
  <div className="flex flex-col gap-2 relative">
@@ -1793,7 +1881,8 @@ export default function SettingsPage() {
  )}
  </Button>
  </div>
- <div className="w-full md:w-[350px] lg:w-[453px] flex-shrink-0 flex flex-col gap-2">
+ <div className="w-full md:w-[350px] lg:w-[453px] flex-shrink-0 flex flex-col gap-4">
+ <div className="space-y-2">
  <Label>Preview Logo/Gambar Banner 2</Label>
  <div className="w-full aspect-[2/1] relative bg-muted rounded-sm overflow-hidden flex items-center justify-center border shadow-sm">
  {heroBanner2File ? (
@@ -1803,6 +1892,24 @@ export default function SettingsPage() {
  ) : (
  <span className="text-primary/70 text-sm">Pratinjau Logo Banner 2</span>
  )}
+ </div>
+ </div>
+
+ <div className="space-y-2">
+ <div className="flex items-center justify-between">
+ <Label>Pratinjau Teks & Font Banner 2</Label>
+ <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary font-medium">
+ {HERO_FONTS.find(f => f.id === heroBanner2Font)?.name || "Jockey One"}
+ </span>
+ </div>
+ <div className="w-full min-h-[120px] p-4 bg-background border border-primary/20 rounded-sm shadow-sm flex items-center justify-center text-center overflow-hidden">
+ <p className={cn(
+ "text-lg sm:text-xl lg:text-2xl text-primary whitespace-pre-wrap break-words leading-tight",
+ getHeroFontClass(heroBanner2Font)
+ )}>
+ {heroBanner2Text || "Nikmati Kualitas Coffee Pilihan Premium\nReal Bean Real Coffee\n100 % Bahagia"}
+ </p>
+ </div>
  </div>
  </div>
  </CardContent>

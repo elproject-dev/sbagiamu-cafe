@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { outfit, jockey } from "@/lib/fonts"
+import { outfit, jockey, getHeroFontClass } from "@/lib/fonts"
 import { supabase } from "@/lib/supabase";
 import { AiFillTikTok, AiFillInstagram } from "react-icons/ai";
 import { FaFacebook, FaYoutube } from "react-icons/fa";
@@ -24,8 +24,10 @@ export default function HomePage() {
   const [promos, setPromos] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [heroText, setHeroText] = useState("Nikmati Kualitas Coffee Pilihan Premium \\nReal Bean Real Coffee \\n100 % Bahagia");
+  const [heroFont, setHeroFont] = useState("jockey");
   const [heroImage, setHeroImage] = useState("/LOGO AI NEW-01.png");
   const [hero2Text, setHero2Text] = useState("Nikmati Kualitas Coffee Pilihan Premium \\nReal Bean Real Coffee \\n100 % Bahagia");
+  const [hero2Font, setHero2Font] = useState("jockey");
   const [hero2Image, setHero2Image] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [articles, setArticles] = useState<any[]>([]);
@@ -50,7 +52,7 @@ export default function HomePage() {
           supabase.from("banner").select("*").order("created_at", { ascending: false }),
           supabase.from("promo").select("*").eq("is_active", true).order("created_at", { ascending: false }).limit(5),
           supabase.from("products").select("*").eq("is_active", true).order("sort_order", { ascending: true, nullsFirst: false }).order("id", { ascending: true }).limit(10),
-          supabase.from("app_config").select("key, value").in("key", ["hero_banner_text", "hero_banner_image", "hero_banner2_text", "hero_banner2_image", "grabfood_link", "shopeefood_link", "gofood_link", "google_review_link", "instagram_link", "facebook_link", "tiktok_link", "youtube_link", "website_link"]),
+          supabase.from("app_config").select("key, value").in("key", ["hero_banner_text", "hero_banner_image", "hero_banner_font", "hero_banner2_text", "hero_banner2_image", "hero_banner2_font", "grabfood_link", "shopeefood_link", "gofood_link", "google_review_link", "instagram_link", "facebook_link", "tiktok_link", "youtube_link", "website_link"]),
           supabase.from("article").select("*").eq("is_active", true).order("created_at", { ascending: false }).limit(5)
         ]);
 
@@ -63,8 +65,10 @@ export default function HomePage() {
           configRes.data.forEach(item => {
             if (item.key === 'hero_banner_text') setHeroText(item.value);
             else if (item.key === 'hero_banner_image') setHeroImage(item.value);
+            else if (item.key === 'hero_banner_font' && item.value) setHeroFont(item.value);
             else if (item.key === 'hero_banner2_text') setHero2Text(item.value);
             else if (item.key === 'hero_banner2_image') setHero2Image(item.value);
+            else if (item.key === 'hero_banner2_font' && item.value) setHero2Font(item.value);
             else linksObj[item.key] = item.value;
           });
           setExtLinks(linksObj);
@@ -178,7 +182,7 @@ export default function HomePage() {
                   <div className="h-10 w-1/3 bg-primary/15 animate-pulse rounded" />
                 </div>
               ) : (
-                <h1 className={`w-full lg:w-[850px] text-[24px] md:text-[36px] lg:text-[48px] leading-[120%] text-primary text-center lg:text-left transition-colors font-normal whitespace-pre-wrap break-words ${jockey.className}`}>
+                <h1 className={`w-full lg:w-[850px] text-[24px] md:text-[36px] lg:text-[48px] leading-[120%] text-primary text-center lg:text-left transition-colors font-normal whitespace-pre-wrap break-words ${getHeroFontClass(heroFont)}`}>
                   {heroText}
                 </h1>
               )}
@@ -344,7 +348,7 @@ export default function HomePage() {
                   <div className="h-10 w-1/3 bg-primary/15 animate-pulse rounded" />
                 </div>
               ) : (
-                <h1 className={`w-full lg:w-[850px] text-[24px] md:text-[36px] lg:text-[48px] leading-[120%] text-primary text-center lg:text-right transition-colors font-normal whitespace-pre-wrap break-words ${jockey.className}`}>
+                <h1 className={`w-full lg:w-[850px] text-[24px] md:text-[36px] lg:text-[48px] leading-[120%] text-primary text-center lg:text-right transition-colors font-normal whitespace-pre-wrap break-words ${getHeroFontClass(hero2Font)}`}>
                   {hero2Text}
                 </h1>
               )}
